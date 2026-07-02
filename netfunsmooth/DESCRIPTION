@@ -1,0 +1,19 @@
+Package: netfunsmooth
+Type: Package
+Title: Network-weighted smoothing for functional data
+Version: 0.1.0
+Authors@R: c(
+    person(
+      "Siyi", "Liu",
+      email = "Siyi.Liu@campus.lmu.de",
+      role = c("aut", "cre")
+    )
+  )
+Description:
+    Methods for smoothing functional data on graph structures.
+
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
