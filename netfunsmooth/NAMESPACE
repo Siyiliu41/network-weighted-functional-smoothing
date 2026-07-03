@@ -3,4 +3,5 @@
 S3method(graph_to_nb,default)
 S3method(graph_to_nb,igraph)
 S3method(graph_to_nb,matrix)
+S3method(graph_to_nb,sf)
 export(graph_to_nb)

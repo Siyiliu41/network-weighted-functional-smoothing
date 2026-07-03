@@ -63,6 +63,27 @@ graph_to_nb.matrix <- function(graph, ...) {
 }
 
 #' @export
+graph_to_nb.sf <- function(graph, queen = TRUE, ...) {
+  if (!requireNamespace("spdep", quietly = TRUE)) {
+    cli::cli_abort("Install {.pkg spdep} to use {.fn graph_to_nb} with {.cls sf} objects.")
+  }
+
+  nb <- spdep::poly2nb(graph, queen = queen, ...)
+
+  nb_list <- lapply(nb, function(x) {
+    if (identical(x, 0L)) {
+      character()
+    } else {
+      as.character(x)
+    }
+  })
+
+  names(nb_list) <- as.character(seq_along(nb_list))
+
+  nb_list
+}
+
+#' @export
 graph_to_nb.default <- function(graph, ...) {
   cli::cli_abort(
     "No {.fn graph_to_nb} method for objects of class {.cls {class(graph)}}."
