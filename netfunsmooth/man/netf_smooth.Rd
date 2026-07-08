@@ -11,11 +11,32 @@ netf_smooth(curves, graph, ...)
 
 \item{graph}{A graph representation supported by \code{\link[=graph_to_nb]{graph_to_nb()}}.}
 
-\item{...}{Additional arguments passed to methods.}
+\item{...}{Additional arguments passed to \code{\link[refund:pffr]{refund::pffr()}}.}
+
+\item{sandwich}{Covariance type passed to \code{\link[refund:pffr]{refund::pffr()}}. Defaults to
+\code{"none"} so results do not depend on the installed refund version.}
+
+\item{bs.int}{Basis specification (a list, see \code{\link[refund:pffr]{refund::pffr()}}) for the
+functional intercept, i.e. the mean curve over t. Together with
+\code{bs.yindex} this controls smoothing along t, in addition to the
+smoothing parameters over the graph.}
+
+\item{bs.yindex}{Basis specification for the node-specific deviations
+over t. Defaults to a larger basis dimension than \code{\link[refund:pffr]{refund::pffr()}}'s
+own default (\code{k = 5}), which is too low to capture node-specific
+shape differences.}
 }
 \value{
 An object of class \code{netf_fit}.
 }
 \description{
-Fit a network-weighted smoother for functional data observed on graph nodes.
+Estimates node-specific smooth curves whose shapes are coupled over a
+graph, via a functional intercept plus a node-by-t Markov random field
+interaction fitted with \code{\link[refund:pffr]{refund::pffr()}}.
+}
+\details{
+If \code{curves} is named, curves are matched to graph nodes by name and an
+error is thrown when the names do not agree with the node names.
+Unnamed curves are matched positionally (curve \code{i} corresponds to
+node \code{i}).
 }
