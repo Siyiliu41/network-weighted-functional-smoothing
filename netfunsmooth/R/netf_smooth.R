@@ -1,31 +1,46 @@
 # R/netf_smooth.R
 
-#' Network-weighted smoothing for functional data
+#' Network-weighted smoothing of functional data
 #'
-#' Estimates node-specific smooth curves whose shapes are coupled over a
-#' graph, via a functional intercept plus a node-by-t Markov random field
-#' interaction fitted with [refund::pffr()].
+#' Estimates one smooth function for each node of a graph. The model consists
+#' of a functional intercept representing the overall mean curve and
+#' node-specific deviations that may vary over the functional domain.
+#' A Markov random field penalty encourages curves at neighbouring nodes
+#' to have similar shapes.
 #'
-#' If `curves` is named, curves are matched to graph nodes by name and an
-#' error is thrown when the names do not agree with the node names.
-#' Unnamed curves are matched positionally (curve `i` corresponds to
-#' node `i`).
+#' If both the curves and graph nodes are named, curves are matched to nodes
+#' by name and reordered to follow the graph-node order. An error is raised
+#' if the names do not agree. Unnamed curves are matched to graph nodes
+#' positionally.
 #'
-#' @param curves A `tfd` or `tfb` vector of curves, one function per graph node.
+#' @param curves A [tf::tfd()] or [tf::tfb()] vector containing one function
+#'   per graph node. All functions must share a common argument grid.
 #' @param graph A graph representation supported by [graph_to_nb()].
-#' @param sandwich Covariance type passed to [refund::pffr()]. Defaults to
-#'   `"none"` so results do not depend on the installed refund version.
-#' @param bs.int Basis specification (a list, see [refund::pffr()]) for the
-#'   functional intercept, i.e. the mean curve over t. Together with
-#'   `bs.yindex` this controls smoothing along t, in addition to the
-#'   smoothing parameters over the graph.
-#' @param bs.yindex Basis specification for the node-specific deviations
-#'   over t. Defaults to a larger basis dimension than [refund::pffr()]'s
-#'   own default (`k = 5`), which is too low to capture node-specific
-#'   shape differences.
+#' @param sandwich Covariance estimator passed to [refund::pffr()].
+#'   The default is `"none"` to make the result independent of changes in
+#'   the default used by different versions of \pkg{refund}.
+#' @param bs.int A list specifying the basis for the functional intercept;
+#'   see [refund::pffr()]. If `NULL`, a P-spline basis is constructed
+#'   automatically.
+#' @param bs.yindex A list specifying the basis over the functional domain
+#'   for the node-specific deviations; see [refund::pffr()]. If `NULL`,
+#'   a P-spline basis with a grid-dependent basis dimension is used.
 #' @param ... Additional arguments passed to [refund::pffr()].
 #'
-#' @returns An object of class `netf_fit`.
+#' @return An object of class `netf_fit`.
+#'
+#' @details
+#' The fitted model can be written as
+#' \deqn{Y_i(t) = \mu(t) + g_i(t) + \epsilon_i(t),}
+#' where \eqn{\mu(t)} is the overall mean function and \eqn{g_i(t)} is the
+#' node-specific deviation. The deviations are smoothed jointly over the
+#' graph and over the functional domain.
+#'
+#' The basis dimensions specified through `bs.int` and `bs.yindex` determine
+#' the maximum complexity available to the mean function and the
+#' node-specific deviations, respectively. Smoothness is additionally
+#' controlled by smoothing parameters estimated during model fitting.
+#'
 #' @export
 netf_smooth <- function(curves, graph, ...) {
   UseMethod("netf_smooth")
@@ -38,7 +53,11 @@ netf_smooth.tfd <- function(curves, graph, ...) {
 
 #' @export
 netf_smooth.tfb <- function(curves, graph, ...) {
-  fit_netf_smooth(curves = tf::tfd(curves), graph = graph, ...)
+  curve_names <- names(curves)
+  curves <- tf::tfd(curves)
+  names(curves) <- curve_names
+  
+  fit_netf_smooth(curves = curves, graph = graph, ...)
 }
 
 #' @export
@@ -60,8 +79,7 @@ netf_smooth.default <- function(curves, graph, ...) {
 # (and, unlike `:::`, does not trigger an R CMD check NOTE). The key is
 # unique per call so concurrent or nested fits never share (and can't
 # clobber) each other's neighbour list, and the entry is removed once
-# the fit completes. The registry entry must never be called `nb`,
-# because `nb` is also a function in mgcv.
+# the fit completes. 
 .nb_registry <- new.env(parent = emptyenv())
 
 register_nb_list <- function(nb_list) {
@@ -70,13 +88,7 @@ register_nb_list <- function(nb_list) {
   key
 }
 
-# The model is Y ~ 1 + s(node, bs = "mrf"): pffr expands this into a
-# functional intercept over t plus a node x t tensor interaction
-# (s(yindex.vec) + ti(node, yindex.vec, ...)), i.e. node-specific curves
-# whose *shapes* vary over the graph. Do not wrap the smooth in c()
-# (that would make it constant over t, reducing the model to a common
-# shape plus node-specific vertical shifts) and do not remove the
-# intercept.
+
 build_pffr_formula <- function(key, k_node) {
   stats::as.formula(sprintf(
     'Y ~ s(node, bs = "mrf",
@@ -145,12 +157,15 @@ fit_netf_smooth <- function(curves, graph,
   )
   df_wide$Y <- I(y_mat)
 
-  # The t-basis dimensions of the functional intercept (bs.int) and the
-  # node-specific deviations (bs.yindex) are a third smoothing lever
-  # besides the smoothing parameters over the graph and over t. pffr's
-  # own bs.yindex default (k = 5) is far too low to let curve shapes
-  # vary across nodes, so we raise it here; explicit user-supplied
-  # values take precedence, and defaults are capped by the grid length.
+  # The two basis specifications control the representational complexity along
+  # the functional domain. `bs.int` applies to the overall mean function,
+  # whereas `bs.yindex` applies to the node-specific deviations. The basis
+  # dimensions are capped by the number of distinct grid points.
+  #
+  # These dimensions set an upper bound on model complexity; the effective
+  # smoothness is additionally determined by the estimated smoothing
+  # parameters. A larger default than in pffr() is used for `bs.yindex` to
+  # accommodate moderately complex node-specific shape differences.
   if (is.null(bs.int)) {
     bs.int <- list(bs = "ps", k = min(20L, n_t), m = c(2, 1))
   }
