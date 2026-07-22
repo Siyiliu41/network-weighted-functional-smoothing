@@ -41,15 +41,51 @@ graph_to_nb.matrix <- function(graph, ...) {
     cli::cli_abort("{.arg graph} must not contain missing values.")
   }
 
-  if (!isSymmetric(graph)) {
+  row_names <- rownames(graph)
+  col_names <- colnames(graph)
+
+  if (!is.null(row_names) && !is.null(col_names)) {
+    if (anyNA(row_names) ||
+        anyNA(col_names) ||
+        any(!nzchar(row_names)) ||
+        any(!nzchar(col_names))) {
+      cli::cli_abort(
+        "Row and column names of {.arg graph} must be non-empty."
+      )
+    }
+
+    if (anyDuplicated(row_names) || anyDuplicated(col_names)) {
+      cli::cli_abort(
+        "Row and column names of {.arg graph} must be unique."
+      )
+    }
+
+    if (!setequal(row_names, col_names)) {
+      cli::cli_abort(
+        "Row and column names of {.arg graph} must contain the same nodes."
+      )
+    }
+
+    graph <- graph[
+      ,
+      match(row_names, col_names),
+      drop = FALSE
+    ]
+
+    colnames(graph) <- row_names
+  }
+  if (!isSymmetric(graph, check.attributes = FALSE)) {
     cli::cli_abort("{.arg graph} must be symmetric.")
   }
 
+  # Self-neighbours are not included.
   diag(graph) <- 0
 
-  node_names <- rownames(graph)
-
-  if (is.null(node_names)) {
+  if (!is.null(row_names)) {
+    node_names <- row_names
+  } else if (!is.null(col_names)) {
+    node_names <- col_names
+  } else {
     node_names <- as.character(seq_len(nrow(graph)))
   }
 
