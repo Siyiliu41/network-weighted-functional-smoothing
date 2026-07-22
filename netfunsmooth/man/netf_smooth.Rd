@@ -4,14 +4,19 @@
 \alias{netf_smooth}
 \title{Network-weighted smoothing of functional data}
 \usage{
-netf_smooth(curves, graph, ...)
+netf_smooth(
+  curves,
+  graph,
+  sandwich = "none",
+  bs.int = NULL,
+  bs.yindex = NULL,
+  ...
+)
 }
 \arguments{
 \item{curves}{A \code{tfd} or \code{tfb} vector of curves, one function per graph node.}
 
 \item{graph}{A graph representation supported by \code{\link[=graph_to_nb]{graph_to_nb()}}.}
-
-\item{...}{Additional arguments passed to \code{\link[refund:pffr]{refund::pffr()}}.}
 
 \item{sandwich}{Covariance type passed to \code{\link[refund:pffr]{refund::pffr()}}. Defaults to
 \code{"none"} so results do not depend on the installed refund version.}
@@ -20,6 +25,8 @@ netf_smooth(curves, graph, ...)
 
 \item{bs.yindex}{Basis specification for the node-specific deviations over
 time. Its basis dimension is an important smoothing-control parameter.}
+
+\item{...}{Additional arguments passed to \code{\link[refund:pffr]{refund::pffr()}}.}
 }
 \value{
 An object of class \code{netf_fit}.

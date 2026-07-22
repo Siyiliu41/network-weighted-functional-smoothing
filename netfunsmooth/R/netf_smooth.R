@@ -13,26 +13,56 @@
 #'
 #' @returns An object of class `netf_fit`.
 #' @export
-netf_smooth <- function(curves, graph, ...) {
+netf_smooth <- function(curves, graph,
+                        sandwich = "none",
+                        bs.int = NULL,
+                        bs.yindex = NULL,
+                        ...) {
   UseMethod("netf_smooth")
 }
 
 #' @export
-netf_smooth.tfd <- function(curves, graph, ...) {
-  fit_netf_smooth(curves = curves, graph = graph, ...)
+netf_smooth.tfd <- function(curves, graph,
+                            sandwich = "none",
+                            bs.int = NULL,
+                            bs.yindex = NULL,
+                            ...) {
+  fit_netf_smooth(
+    curves = curves,
+    graph = graph,
+    sandwich = sandwich,
+    bs.int = bs.int,
+    bs.yindex = bs.yindex,
+    ...
+  )
 }
 
 #' @export
-netf_smooth.tfb <- function(curves, graph, ...) {
+netf_smooth.tfb <- function(curves, graph,
+                            sandwich = "none",
+                            bs.int = NULL,
+                            bs.yindex = NULL,
+                            ...) {
   curve_names <- names(curves)
   curves <- tf::tfd(curves)
   names(curves) <- curve_names
-  
-  fit_netf_smooth(curves = curves, graph = graph, ...)
+
+  fit_netf_smooth(
+    curves = curves,
+    graph = graph,
+    sandwich = sandwich,
+    bs.int = bs.int,
+    bs.yindex = bs.yindex,
+    ...
+  )
 }
 
 #' @export
-netf_smooth.default <- function(curves, graph, ...) {
+netf_smooth.default <- function(curves, graph,
+                                sandwich = "none",
+                                bs.int = NULL,
+                                bs.yindex = NULL,
+                                ...) {
   cli::cli_abort(
     "No {.fn netf_smooth} method for objects of class {.cls {class(curves)}}."
   )
@@ -69,26 +99,26 @@ build_pffr_formula <- function(key, k_node) {
 
 align_curves_to_nodes <- function(curves, node_names) {
   curve_names <- names(curves)
-  
+
   if (is.null(curve_names) || length(curve_names) == 0L) {
     names(curves) <- node_names
     return(curves)
   }
-  
+
   if (length(curve_names) != length(curves) ||
       anyNA(curve_names) || any(!nzchar(curve_names))) {
     cli::cli_abort(
       "If {.arg curves} are named, every curve must have a non-empty name."
     )
   }
-  
+
   if (anyDuplicated(curve_names)) {
     cli::cli_abort("Names of {.arg curves} must be unique.")
   }
-  
+
   missing_curves <- setdiff(node_names, curve_names)
   unknown_curves <- setdiff(curve_names, node_names)
-  
+
   if (length(missing_curves) > 0L || length(unknown_curves) > 0L) {
     problems <- "Curve names and graph node names must agree exactly."
     if (length(missing_curves) > 0L) {
@@ -105,7 +135,7 @@ align_curves_to_nodes <- function(curves, node_names) {
     }
     cli::cli_abort(problems)
   }
-  
+
   curves[match(node_names, curve_names)]
 }
 
