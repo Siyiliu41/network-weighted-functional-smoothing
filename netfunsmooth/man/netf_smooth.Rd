@@ -7,49 +7,23 @@
 netf_smooth(curves, graph, ...)
 }
 \arguments{
-\item{curves}{A \code{\link[tf:tfd]{tf::tfd()}} or \code{\link[tf:tfb]{tf::tfb()}} vector containing one function
-per graph node. All functions must share a common argument grid.}
+\item{curves}{A \code{tfd} or \code{tfb} vector of curves, one function per graph node.}
 
 \item{graph}{A graph representation supported by \code{\link[=graph_to_nb]{graph_to_nb()}}.}
 
 \item{...}{Additional arguments passed to \code{\link[refund:pffr]{refund::pffr()}}.}
 
-\item{sandwich}{Covariance estimator passed to \code{\link[refund:pffr]{refund::pffr()}}.
-The default is \code{"none"} to make the result independent of changes in
-the default used by different versions of \pkg{refund}.}
+\item{sandwich}{Covariance type passed to \code{\link[refund:pffr]{refund::pffr()}}. Defaults to
+\code{"none"} so results do not depend on the installed refund version.}
 
-\item{bs.int}{A list specifying the basis for the functional intercept;
-see \code{\link[refund:pffr]{refund::pffr()}}. If \code{NULL}, a P-spline basis is constructed
-automatically.}
+\item{bs.int}{Basis specification for the functional intercept over time.}
 
-\item{bs.yindex}{A list specifying the basis over the functional domain
-for the node-specific deviations; see \code{\link[refund:pffr]{refund::pffr()}}. If \code{NULL},
-a P-spline basis with a grid-dependent basis dimension is used.}
+\item{bs.yindex}{Basis specification for the node-specific deviations over
+time. Its basis dimension is an important smoothing-control parameter.}
 }
 \value{
 An object of class \code{netf_fit}.
 }
 \description{
-Estimates one smooth function for each node of a graph. The model consists
-of a functional intercept representing the overall mean curve and
-node-specific deviations that may vary over the functional domain.
-A Markov random field penalty encourages curves at neighbouring nodes
-to have similar shapes.
-}
-\details{
-If both the curves and graph nodes are named, curves are matched to nodes
-by name and reordered to follow the graph-node order. An error is raised
-if the names do not agree. Unnamed curves are matched to graph nodes
-positionally.
-
-The fitted model can be written as
-\deqn{Y_i(t) = \mu(t) + g_i(t) + \epsilon_i(t),}
-where \eqn{\mu(t)} is the overall mean function and \eqn{g_i(t)} is the
-node-specific deviation. The deviations are smoothed jointly over the
-graph and over the functional domain.
-
-The basis dimensions specified through \code{bs.int} and \code{bs.yindex} determine
-the maximum complexity available to the mean function and the
-node-specific deviations, respectively. Smoothness is additionally
-controlled by smoothing parameters estimated during model fitting.
+Network-weighted smoothing of functional data
 }
