@@ -36,5 +36,14 @@ predict.netf_fit <- function(object, newdata = NULL, ...) {
     t_grid <- seq_len(ncol(pred))
   }
 
-  tf::tfd(pred, arg = t_grid)
+  result <- tf::tfd(pred, arg = t_grid)
+
+  curve_names <- names(object$curves)
+
+  if (!is.null(curve_names) &&
+      length(curve_names) == length(result)) {
+    names(result) <- curve_names
+  }
+
+  result
 }
