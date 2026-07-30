@@ -1,12 +1,3 @@
----
-title: "Simulation Study Specification"
-output: html_document
-date: "2026-07-28"
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 # Simulation Study of Network-Weighted Smoothing for Functional Data
 
 ## Specification According to the ADEMP Framework
@@ -18,13 +9,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 The simulation study evaluates the statistical performance of the network-weighted smoother implemented in the R package `netfunsmooth`.
 
-For every node \(i=1,\ldots,N\) in a known graph, a noisy functional observation
+For every node $i=1,\ldots,N$ in a known graph, a noisy functional observation
 
-\[
+$$
 Y_i(t_j)=f_i(t_j)+\varepsilon_{ij}
-\]
+$$
 
-is available. The objective is to reconstruct the unknown smooth node-specific curves \(f_i(t)\). The study focuses on whether simultaneous smoothing over the functional domain and the graph improves reconstruction compared with methods that do not use the graph structure.
+is available. The objective is to reconstruct the unknown smooth node-specific curves $f_i(t)$. The study focuses on whether simultaneous smoothing over the functional domain and the graph improves reconstruction compared with methods that do not use the graph structure.
 
 The study follows the ADEMP framework:
 
@@ -76,23 +67,23 @@ These expectations guide the interpretation of the results but will not be used 
 
 ### 3.1 Graph and observation grid
 
-The core simulation uses a regular \(5\times5\) lattice with
+The core simulation uses a regular $5\times5$ lattice with
 
-\[
+$$
 N=25
-\]
+$$
 
 nodes.
 
 Each function is observed on an equally spaced grid
 
-\[
+$$
 t_j\in[0,1],
 \qquad
 j=1,\ldots,T,
 \qquad
 T=50.
-\]
+$$
 
 Within each simulation replication, all methods are applied to exactly the same simulated dataset. This allows paired comparisons between methods.
 
@@ -118,65 +109,65 @@ Because the scale of the graph Laplacian changes with the number of edges and no
 
 The observed functions are generated as
 
-\[
+$$
 Y_i(t_j)
 =
 f_i(t_j)+\varepsilon_{ij},
-\]
+$$
 
 where, in the core simulation,
 
-\[
+$$
 \varepsilon_{ij}
 \overset{\mathrm{iid}}{\sim}
 N(0,\sigma^2).
-\]
+$$
 
 Gaussian and temporally independent errors provide a deliberately simple reference setting. Temporally correlated or heteroscedastic errors may subsequently be considered in robustness analyses.
 
 ### 3.4 True node-specific curves
 
-The true function at node \(i\) is decomposed as
+The true function at node $i$ is decomposed as
 
-\[
+$$
 f_i(t)=\mu(t)+\delta_i(t),
-\]
+$$
 
-where \(\mu(t)\) is a common smooth mean function and \(\delta_i(t)\) is a node-specific deviation.
+where $\mu(t)$ is a common smooth mean function and $\delta_i(t)$ is a node-specific deviation.
 
-For identifiability, the deviations are centred across nodes for every \(t\):
+For identifiability, the deviations are centred across nodes for every $t$:
 
-\[
+$$
 \sum_{i=1}^{N}\delta_i(t)=0.
-\]
+$$
 
 The node-specific deviations are constructed using multiple temporal basis functions:
 
-\[
+$$
 \delta_i(t)
 =
 \sum_{k=1}^{K}\theta_{ik}\phi_k(t).
-\]
+$$
 
-The core simulation uses \(K=3\), for example:
+The core simulation uses $K=3$, for example:
 
-\[
+$$
 \phi_1(t)=\sin(2\pi t),
-\]
+$$
 
-\[
+$$
 \phi_2(t)=\cos(2\pi t),
-\]
+$$
 
 and
 
-\[
+$$
 \phi_3(t)
 =
 \exp\left\{-100(t-0.65)^2\right\}.
-\]
+$$
 
-Varying multiple coefficients \(\theta_{ik}\) allows the node-specific functions to differ in amplitude, phase, curvature, and local peaks.
+Varying multiple coefficients $\theta_{ik}$ allows the node-specific functions to differ in amplitude, phase, curvature, and local peaks.
 
 This is essential because the simulation should test whether the estimator can recover differences in curve shape across the graph, rather than only vertical shifts or amplitude differences.
 
@@ -186,7 +177,7 @@ Graph-signal strength describes how strongly the similarity between the true nod
 
 For each temporal basis coefficient, define
 
-\[
+$$
 \boldsymbol{\theta}_k
 =
 \sqrt{\alpha}\,
@@ -194,35 +185,35 @@ For each temporal basis coefficient, define
 +
 \sqrt{1-\alpha}\,
 \boldsymbol{\theta}^{(I)}_k,
-\]
+$$
 
 where:
 
-- \(\boldsymbol{\theta}^{(G)}_k\) is a graph-compatible coefficient vector;
-- \(\boldsymbol{\theta}^{(I)}_k\) is a coefficient vector independent of the graph;
-- \(\alpha\) controls the graph-signal strength.
+- $\boldsymbol{\theta}^{(G)}_k$ is a graph-compatible coefficient vector;
+- $\boldsymbol{\theta}^{(I)}_k$ is a coefficient vector independent of the graph;
+- $\alpha$ controls the graph-signal strength.
 
 After combining the two components, the coefficients are centred and standardised so that their marginal signal variance remains comparable across scenarios.
 
 The core simulation considers
 
-\[
+$$
 \alpha\in\{0.5,0.9\},
-\]
+$$
 
 representing moderate and strong graph signals.
 
 A separate negative-control scenario uses
 
-\[
+$$
 \alpha=0.
-\]
+$$
 
 In this setting, the graph contains no information about the similarity of the true curves. This scenario evaluates whether the graph penalty causes harmful oversmoothing when the graph structure is irrelevant.
 
 Graph smoothness is additionally described using normalised Laplacian energy:
 
-\[
+$$
 R_k
 =
 \frac{
@@ -231,9 +222,9 @@ R_k
 }{
 \boldsymbol{\theta}_k^\top\boldsymbol{\theta}_k
 }.
-\]
+$$
 
-Small values of \(R_k\) indicate a strong and smooth graph signal.
+Small values of $R_k$ indicate a strong and smooth graph signal.
 
 ### 3.6 Structure of the true curves
 
@@ -241,7 +232,7 @@ Two main data-generating mechanisms are considered.
 
 #### DGP 1: Graph-smooth truth
 
-The graph-compatible coefficient vectors \(\boldsymbol{\theta}^{(G)}_k\) are constructed from low-frequency eigenvectors of the normalised graph Laplacian.
+The graph-compatible coefficient vectors $\boldsymbol{\theta}^{(G)}_k$ are constructed from low-frequency eigenvectors of the normalised graph Laplacian.
 
 As a result, the shapes of the functions change gradually across the graph. Neighbouring nodes have similar but not identical curves.
 
@@ -253,17 +244,17 @@ The graph nodes are divided into several connected clusters. Nodes within a clus
 
 The coefficients can be represented as
 
-\[
+$$
 \theta_{ik}
 =
 \gamma_{c(i),k}+u_{ik},
-\]
+$$
 
 where:
 
-- \(c(i)\) denotes the true cluster assignment of node \(i\);
-- \(\gamma_{c(i),k}\) is a cluster-specific coefficient;
-- \(u_{ik}\) is a smaller node-specific deviation.
+- $c(i)$ denotes the true cluster assignment of node $i$;
+- $\gamma_{c(i),k}$ is a cluster-specific coefficient;
+- $u_{ik}$ is a smaller node-specific deviation.
 
 This produces similar curves within clusters and discontinuous changes at cluster boundaries.
 
@@ -278,15 +269,15 @@ A node is classified as a boundary node if at least one of its neighbours belong
 
 The core simulation uses two noise levels:
 
-\[
+$$
 \sigma\in\{0.2,0.5\}.
-\]
+$$
 
 These represent low and high observation noise. A pilot simulation will verify that the two levels produce meaningfully different levels of difficulty, both visually and in terms of the signal-to-noise ratio.
 
 The empirical signal-to-noise ratio is documented as
 
-\[
+$$
 \operatorname{SNR}
 =
 \frac{
@@ -297,7 +288,7 @@ The empirical signal-to-noise ratio is documented as
 }{
 \sigma^2
 }.
-\]
+$$
 
 If the selected values do not produce a meaningful distinction between easy and difficult scenarios, they may be adjusted based on the pilot simulation. Any adjustment must be documented before the main simulation results are inspected.
 
@@ -308,37 +299,37 @@ The core factorial design combines the following factors:
 | Factor | Levels |
 |---|---|
 | Structure of the truth | Graph-smooth, cluster-structured |
-| Graph-signal strength | \(\alpha=0.5,0.9\) |
+| Graph-signal strength | $\alpha=0.5,0.9$ |
 | Neighbourhood density | Sparse, dense |
-| Noise level | \(\sigma=0.2,0.5\) |
+| Noise level | $\sigma=0.2,0.5$ |
 
 This results in
 
-\[
+$$
 2\times2\times2\times2=16
-\]
+$$
 
 core scenarios.
 
-The scenarios with \(\alpha=0\) are evaluated as additional negative controls. They need not be combined with every other design factor if computational resources are limited.
+The scenarios with $\alpha=0$ are evaluated as additional negative controls. They need not be combined with every other design factor if computational resources are limited.
 
 ### 3.9 Sensitivity analyses
 
 The following sensitivity analyses will be conducted for selected representative scenarios:
 
-1. larger graphs, such as \(N=100\) on a \(10\times10\) lattice;
+1. larger graphs, such as $N=100$ on a $10\times10$ lattice;
 2. different temporal basis dimensions for the mean function and node-specific deviations;
 3. comparison of a deliberately low basis dimension with sufficiently flexible specifications;
 4. temporally correlated observation errors;
 5. mildly misspecified graphs created by adding or removing selected edges.
 
-The temporal basis dimension for the node-specific deviations should be larger than the low default value \(k=5\).
+The temporal basis dimension for the node-specific deviations should be larger than the low default value $k=5$.
 
 A possible core specification is
 
-\[
+$$
 K_{\mathrm{int}}=K_{\mathrm{dev}}=10,
-\]
+$$
 
 with smaller and larger basis dimensions examined in selected sensitivity scenarios.
 
@@ -350,23 +341,23 @@ with smaller and larger basis dimensions examined in selected sensitivity scenar
 
 The primary estimand is the complete collection of true node-specific functions:
 
-\[
+$$
 \mathcal{F}
 =
 \left\{
 f_1(t),\ldots,f_N(t)
 \right\}.
-\]
+$$
 
 Each method produces estimates
 
-\[
+$$
 \widehat{\mathcal{F}}
 =
 \left\{
 \widehat f_1(t),\ldots,\widehat f_N(t)
 \right\}.
-\]
+$$
 
 ### 4.2 Secondary estimands
 
@@ -438,11 +429,11 @@ Because of its computational cost, the oracle method may be restricted to select
 
 ### M3: Nodewise univariate smoothing
 
-Each node-specific function is smoothed separately over \(t\):
+Each node-specific function is smoothed separately over $t$:
 
-\[
+$$
 Y_i(t)=s_i(t)+\varepsilon_i(t).
-\]
+$$
 
 This method does not use graph information but preserves node-specific variation.
 
@@ -454,15 +445,15 @@ Where possible, M1 and M3 use comparable temporal bases and the same type of smo
 
 Node identity is ignored, and a single common mean function is estimated:
 
-\[
+$$
 Y_i(t)=\mu(t)+\varepsilon_i(t).
-\]
+$$
 
 The same estimated function is then assigned to every node:
 
-\[
+$$
 \widehat f_i(t)=\widehat\mu(t).
-\]
+$$
 
 This method represents complete pooling. It may have low variance but cannot represent systematic differences between node-specific curves.
 
@@ -485,16 +476,16 @@ This comparison requires spatial coordinates for the graph nodes. It assesses sp
 
 ### 6.1 Node-specific integrated squared error
 
-For node \(i\), method \(m\), and simulation replication \(b\), the integrated squared error is
+For node $i$, method $m$, and simulation replication $b$, the integrated squared error is
 
-\[
+$$
 \operatorname{ISE}_{ibm}
 =
 \int_0^1
 \left[
 \widehat f_{ibm}(t)-f_{ib}(t)
 \right]^2dt.
-\]
+$$
 
 On the discrete observation grid, the integral is approximated numerically, preferably using the trapezoidal rule.
 
@@ -502,23 +493,23 @@ On the discrete observation grid, the integral is approximated numerically, pref
 
 Within each simulation replication, the ISE is averaged across nodes:
 
-\[
+$$
 \operatorname{AISE}_{bm}
 =
 \frac{1}{N}
 \sum_{i=1}^{N}
 \operatorname{ISE}_{ibm}.
-\]
+$$
 
-Across \(B\) simulation replications, the estimated mean integrated squared error is
+Across $B$ simulation replications, the estimated mean integrated squared error is
 
-\[
+$$
 \widehat{\operatorname{MISE}}_m
 =
 \frac{1}{B}
 \sum_{b=1}^{B}
 \operatorname{AISE}_{bm}.
-\]
+$$
 
 This is the primary absolute performance measure.
 
@@ -526,7 +517,7 @@ This is the primary absolute performance measure.
 
 The main comparative measure is defined relative to M3:
 
-\[
+$$
 \operatorname{RI}_{bm}
 =
 100
@@ -537,17 +528,17 @@ The main comparative measure is defined relative to M3:
 }{
 \operatorname{AISE}_{b,\mathrm{nodewise}}
 }.
-\]
+$$
 
 Its interpretation is:
 
-- \(\operatorname{RI}>0\): method \(m\) performs better than nodewise smoothing;
-- \(\operatorname{RI}=0\): no performance difference;
-- \(\operatorname{RI}<0\): method \(m\) performs worse.
+- $\operatorname{RI}>0$: method $m$ performs better than nodewise smoothing;
+- $\operatorname{RI}=0$: no performance difference;
+- $\operatorname{RI}<0$: method $m$ performs worse.
 
 The MISE ratio is additionally reported:
 
-\[
+$$
 \operatorname{rMISE}_m
 =
 \frac{
@@ -555,7 +546,7 @@ The MISE ratio is additionally reported:
 }{
 \widehat{\operatorname{MISE}}_{\mathrm{nodewise}}
 }.
-\]
+$$
 
 Values below 1 favour the method under consideration.
 
@@ -563,23 +554,23 @@ Values below 1 favour the method under consideration.
 
 For the block-structured DGP, performance is separately evaluated for boundary and interior nodes:
 
-\[
+$$
 \operatorname{MISE}_{\mathrm{boundary}}
-\]
+$$
 
 and
 
-\[
+$$
 \operatorname{MISE}_{\mathrm{interior}}.
-\]
+$$
 
 The difference
 
-\[
+$$
 \operatorname{MISE}_{\mathrm{boundary}}
 -
 \operatorname{MISE}_{\mathrm{interior}}
-\]
+$$
 
 is used as an indicator of potential oversmoothing across genuine cluster boundaries.
 
@@ -587,13 +578,13 @@ is used as an indicator of potential oversmoothing across genuine cluster bounda
 
 For the REML-based network estimator, the difference from oracle performance is
 
-\[
+$$
 \operatorname{OracleGap}
 =
 \widehat{\operatorname{MISE}}_{\mathrm{network,REML}}
 -
 \widehat{\operatorname{MISE}}_{\mathrm{network,oracle}}.
-\]
+$$
 
 The ratio between estimated and oracle smoothing parameters may additionally be examined.
 
@@ -603,7 +594,7 @@ A Monte Carlo standard error is reported for every estimated performance measure
 
 For the estimated MISE, for example,
 
-\[
+$$
 \operatorname{MCSE}
 =
 \frac{
@@ -615,7 +606,7 @@ For the estimated MISE, for example,
 }{
 \sqrt{B}
 }.
-\]
+$$
 
 The simulation results are therefore reported together with their Monte Carlo uncertainty rather than only as point estimates.
 
@@ -647,9 +638,9 @@ The procedure is:
 
 Performance is assessed using the Adjusted Rand Index:
 
-\[
+$$
 \operatorname{ARI}\in[-1,1].
-\]
+$$
 
 A higher ARI indicates that the estimated functions preserve the true cluster structure more accurately.
 
@@ -665,9 +656,9 @@ An outlier-detection analysis would require an additional DGP with explicitly ge
 
 A pilot simulation with
 
-\[
+$$
 B_{\mathrm{pilot}}=20\text{--}50
-\]
+$$
 
 replications will first be conducted.
 
@@ -682,13 +673,13 @@ The pilot simulation is used only to verify:
 
 The initial target for the core simulation is
 
-\[
+$$
 B=500
-\]
+$$
 
 replications per scenario.
 
-The final number of replications will be based on the resulting Monte Carlo standard errors. If the Monte Carlo uncertainty remains too large at \(B=500\), the number of replications will be increased.
+The final number of replications will be based on the resulting Monte Carlo standard errors. If the Monte Carlo uncertainty remains too large at $B=500$, the number of replications will be increased.
 
 ### 8.2 Random numbers and reproducibility
 
@@ -747,7 +738,7 @@ The following decisions will be finalised before the main simulation is conducte
 6. the final number of Monte Carlo replications;
 7. the clustering algorithm and functional representation;
 8. the exact scope of the separate `SpatFD` experiment;
-9. the sensitivity scenarios selected for \(N=100\).
+9. the sensitivity scenarios selected for $N=100$.
 
 These decisions will be documented before the main simulation results are inspected.
 
@@ -759,7 +750,7 @@ If computational time is limited, the analyses will be prioritised as follows:
 
 1. **Core benchmark:** network-REML versus nodewise smoothing;
 2. **Sanity check:** a strongly graph-smooth setting in which graph smoothing should clearly help;
-3. **Negative control:** \(\alpha=0\);
+3. **Negative control:** $\alpha=0$;
 4. **Pooled baseline;**
 5. **Cluster-boundary and clustering analysis;**
 6. **Oracle diagnostics;**
@@ -776,16 +767,16 @@ This prioritisation ensures that the main research questions can still be answer
 | ADEMP component | Specification |
 |---|---|
 | Aim | Assess the benefit of graph information for reconstructing node-specific curves |
-| Data | \(N=25\), \(5\times5\) lattice, \(T=50\), Gaussian noise |
+| Data | $N=25$, $5\times5$ lattice, $T=50$, Gaussian noise |
 | Truth | Graph-smooth or cluster-structured, with genuine shape differences across nodes |
-| Graph signal | \(\alpha=0.5,0.9\), with \(\alpha=0\) as a negative control |
+| Graph signal | $\alpha=0.5,0.9$, with $\alpha=0$ as a negative control |
 | Graph density | Rook and queen adjacency |
-| Noise level | \(\sigma=0.2,0.5\), to be validated in the pilot simulation |
+| Noise level | $\sigma=0.2,0.5$, to be validated in the pilot simulation |
 | Methods | Network-REML, network-oracle, nodewise smoothing, pooled smoothing |
-| Primary estimand | True node-specific functions \(f_i(t)\) |
+| Primary estimand | True node-specific functions $f_i(t)$ |
 | Primary measure | Node-averaged ISE and relative improvement over nodewise smoothing |
 | Secondary measures | Boundary MISE, oracle gap, ARI, computation time, warning and failure rates |
-| Core design | 16 scenarios, initially \(B=500\) replications |
+| Core design | 16 scenarios, initially $B=500$ replications |
 | `SpatFD` | Separate leave-one-node-out spatial prediction experiment |
 
 ## Reference
