@@ -152,7 +152,7 @@ $$
 and
 
 $$
-\phi_3(t) = \exp\left\{-100(t-0.65)^2\right\}.
+\phi_3(t) = \exp\{-100(t-0.65)^2\}.
 $$
 
 Varying multiple coefficients $\theta_{ik}$ allows the node-specific functions to differ in amplitude, phase, curvature, and local peaks.
@@ -306,13 +306,13 @@ with smaller and larger basis dimensions examined in selected sensitivity scenar
 The primary estimand is the complete collection of true node-specific functions:
 
 $$
-\mathcal{F} = \left\{ f_1(t),\ldots,f_N(t) \right\}.
+\mathcal{F} = \{ f_1(t),\ldots,f_N(t) \}.
 $$
 
 Each method produces estimates
 
 $$
-\widehat{\mathcal{F}} = \left\{ \widehat f_1(t),\ldots,\widehat f_N(t) \right\}.
+\widehat{\mathcal{F}} = \{ \widehat f_1(t),\ldots,\widehat f_N(t) \}.
 $$
 
 ### 4.2 Secondary estimands
