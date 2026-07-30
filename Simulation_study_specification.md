@@ -78,11 +78,7 @@ nodes.
 Each function is observed on an equally spaced grid
 
 $$
-t_j\in[0,1],
-\qquad
-j=1,\ldots,T,
-\qquad
-T=50.
+t_j\in[0,1], \qquad j=1,\ldots,T, \qquad T=50.
 $$
 
 Within each simulation replication, all methods are applied to exactly the same simulated dataset. This allows paired comparisons between methods.
@@ -110,17 +106,13 @@ Because the scale of the graph Laplacian changes with the number of edges and no
 The observed functions are generated as
 
 $$
-Y_i(t_j)
-=
-f_i(t_j)+\varepsilon_{ij},
+Y_i(t_j) = f_i(t_j)+\varepsilon_{ij},
 $$
 
 where, in the core simulation,
 
 $$
-\varepsilon_{ij}
-\overset{\mathrm{iid}}{\sim}
-N(0,\sigma^2).
+\varepsilon_{ij} \overset{\mathrm{iid}}{\sim} N(0,\sigma^2).
 $$
 
 Gaussian and temporally independent errors provide a deliberately simple reference setting. Temporally correlated or heteroscedastic errors may subsequently be considered in robustness analyses.
@@ -144,9 +136,7 @@ $$
 The node-specific deviations are constructed using multiple temporal basis functions:
 
 $$
-\delta_i(t)
-=
-\sum_{k=1}^{K}\theta_{ik}\phi_k(t).
+\delta_i(t) = \sum_{k=1}^{K}\theta_{ik}\phi_k(t).
 $$
 
 The core simulation uses $K=3$, for example:
@@ -162,9 +152,7 @@ $$
 and
 
 $$
-\phi_3(t)
-=
-\exp\left\{-100(t-0.65)^2\right\}.
+\phi_3(t) = \exp\left\{-100(t-0.65)^2\right\}.
 $$
 
 Varying multiple coefficients $\theta_{ik}$ allows the node-specific functions to differ in amplitude, phase, curvature, and local peaks.
@@ -178,13 +166,7 @@ Graph-signal strength describes how strongly the similarity between the true nod
 For each temporal basis coefficient, define
 
 $$
-\boldsymbol{\theta}_k
-=
-\sqrt{\alpha}\,
-\boldsymbol{\theta}^{(G)}_k
-+
-\sqrt{1-\alpha}\,
-\boldsymbol{\theta}^{(I)}_k,
+\boldsymbol{\theta}_k = \sqrt{\alpha}\, \boldsymbol{\theta}^{(G)}_k + \sqrt{1-\alpha}\, \boldsymbol{\theta}^{(I)}_k,
 $$
 
 where:
@@ -214,14 +196,7 @@ In this setting, the graph contains no information about the similarity of the t
 Graph smoothness is additionally described using normalised Laplacian energy:
 
 $$
-R_k
-=
-\frac{
-\boldsymbol{\theta}_k^\top L_{\mathrm{norm}}
-\boldsymbol{\theta}_k
-}{
-\boldsymbol{\theta}_k^\top\boldsymbol{\theta}_k
-}.
+R_k = \frac{ \boldsymbol{\theta}_k^\top L_{\mathrm{norm}} \boldsymbol{\theta}_k }{ \boldsymbol{\theta}_k^\top\boldsymbol{\theta}_k }.
 $$
 
 Small values of $R_k$ indicate a strong and smooth graph signal.
@@ -245,9 +220,7 @@ The graph nodes are divided into several connected clusters. Nodes within a clus
 The coefficients can be represented as
 
 $$
-\theta_{ik}
-=
-\gamma_{c(i),k}+u_{ik},
+\theta_{ik} = \gamma_{c(i),k}+u_{ik},
 $$
 
 where:
@@ -278,16 +251,7 @@ These represent low and high observation noise. A pilot simulation will verify t
 The empirical signal-to-noise ratio is documented as
 
 $$
-\operatorname{SNR}
-=
-\frac{
-\frac{1}{NT}
-\sum_{i=1}^{N}
-\sum_{j=1}^{T}
-\left(f_i(t_j)-\bar f\right)^2
-}{
-\sigma^2
-}.
+\mathrm{SNR} = \frac{ \frac{1}{NT} \sum_{i=1}^{N} \sum_{j=1}^{T} \left(f_i(t_j)-\bar f\right)^2 }{ \sigma^2 }.
 $$
 
 If the selected values do not produce a meaningful distinction between easy and difficult scenarios, they may be adjusted based on the pilot simulation. Any adjustment must be documented before the main simulation results are inspected.
@@ -342,21 +306,13 @@ with smaller and larger basis dimensions examined in selected sensitivity scenar
 The primary estimand is the complete collection of true node-specific functions:
 
 $$
-\mathcal{F}
-=
-\left\{
-f_1(t),\ldots,f_N(t)
-\right\}.
+\mathcal{F} = \left\{ f_1(t),\ldots,f_N(t) \right\}.
 $$
 
 Each method produces estimates
 
 $$
-\widehat{\mathcal{F}}
-=
-\left\{
-\widehat f_1(t),\ldots,\widehat f_N(t)
-\right\}.
+\widehat{\mathcal{F}} = \left\{ \widehat f_1(t),\ldots,\widehat f_N(t) \right\}.
 $$
 
 ### 4.2 Secondary estimands
@@ -479,12 +435,7 @@ This comparison requires spatial coordinates for the graph nodes. It assesses sp
 For node $i$, method $m$, and simulation replication $b$, the integrated squared error is
 
 $$
-\operatorname{ISE}_{ibm}
-=
-\int_0^1
-\left[
-\widehat f_{ibm}(t)-f_{ib}(t)
-\right]^2dt.
+\mathrm{ISE}_{ibm} = \int_0^1 \left[ \widehat f_{ibm}(t)-f_{ib}(t) \right]^2dt.
 $$
 
 On the discrete observation grid, the integral is approximated numerically, preferably using the trapezoidal rule.
@@ -494,21 +445,13 @@ On the discrete observation grid, the integral is approximated numerically, pref
 Within each simulation replication, the ISE is averaged across nodes:
 
 $$
-\operatorname{AISE}_{bm}
-=
-\frac{1}{N}
-\sum_{i=1}^{N}
-\operatorname{ISE}_{ibm}.
+\mathrm{AISE}_{bm} = \frac{1}{N} \sum_{i=1}^{N} \mathrm{ISE}_{ibm}.
 $$
 
 Across $B$ simulation replications, the estimated mean integrated squared error is
 
 $$
-\widehat{\operatorname{MISE}}_m
-=
-\frac{1}{B}
-\sum_{b=1}^{B}
-\operatorname{AISE}_{bm}.
+\widehat{\mathrm{MISE}}_m = \frac{1}{B} \sum_{b=1}^{B} \mathrm{AISE}_{bm}.
 $$
 
 This is the primary absolute performance measure.
@@ -518,34 +461,19 @@ This is the primary absolute performance measure.
 The main comparative measure is defined relative to M3:
 
 $$
-\operatorname{RI}_{bm}
-=
-100
-\frac{
-\operatorname{AISE}_{b,\mathrm{nodewise}}
--
-\operatorname{AISE}_{bm}
-}{
-\operatorname{AISE}_{b,\mathrm{nodewise}}
-}.
+\mathrm{RI}_{bm} = 100 \frac{ \mathrm{AISE}_{b,\mathrm{nodewise}} - \mathrm{AISE}_{bm} }{ \mathrm{AISE}_{b,\mathrm{nodewise}} }.
 $$
 
 Its interpretation is:
 
-- $\operatorname{RI}>0$: method $m$ performs better than nodewise smoothing;
-- $\operatorname{RI}=0$: no performance difference;
-- $\operatorname{RI}<0$: method $m$ performs worse.
+- $\mathrm{RI}>0$: method $m$ performs better than nodewise smoothing;
+- $\mathrm{RI}=0$: no performance difference;
+- $\mathrm{RI}<0$: method $m$ performs worse.
 
 The MISE ratio is additionally reported:
 
 $$
-\operatorname{rMISE}_m
-=
-\frac{
-\widehat{\operatorname{MISE}}_m
-}{
-\widehat{\operatorname{MISE}}_{\mathrm{nodewise}}
-}.
+\mathrm{rMISE}_m = \frac{ \widehat{\mathrm{MISE}}_m }{ \widehat{\mathrm{MISE}}_{\mathrm{nodewise}} }.
 $$
 
 Values below 1 favour the method under consideration.
@@ -555,21 +483,19 @@ Values below 1 favour the method under consideration.
 For the block-structured DGP, performance is separately evaluated for boundary and interior nodes:
 
 $$
-\operatorname{MISE}_{\mathrm{boundary}}
+\mathrm{MISE}_{\mathrm{boundary}}
 $$
 
 and
 
 $$
-\operatorname{MISE}_{\mathrm{interior}}.
+\mathrm{MISE}_{\mathrm{interior}}.
 $$
 
 The difference
 
 $$
-\operatorname{MISE}_{\mathrm{boundary}}
--
-\operatorname{MISE}_{\mathrm{interior}}
+\mathrm{MISE}_{\mathrm{boundary}} - \mathrm{MISE}_{\mathrm{interior}}
 $$
 
 is used as an indicator of potential oversmoothing across genuine cluster boundaries.
@@ -579,11 +505,7 @@ is used as an indicator of potential oversmoothing across genuine cluster bounda
 For the REML-based network estimator, the difference from oracle performance is
 
 $$
-\operatorname{OracleGap}
-=
-\widehat{\operatorname{MISE}}_{\mathrm{network,REML}}
--
-\widehat{\operatorname{MISE}}_{\mathrm{network,oracle}}.
+\mathrm{OracleGap} = \widehat{\mathrm{MISE}}_{\mathrm{network,REML}} - \widehat{\mathrm{MISE}}_{\mathrm{network,oracle}}.
 $$
 
 The ratio between estimated and oracle smoothing parameters may additionally be examined.
@@ -595,17 +517,7 @@ A Monte Carlo standard error is reported for every estimated performance measure
 For the estimated MISE, for example,
 
 $$
-\operatorname{MCSE}
-=
-\frac{
-\operatorname{SD}
-\left(
-\operatorname{AISE}_{1m},\ldots,
-\operatorname{AISE}_{Bm}
-\right)
-}{
-\sqrt{B}
-}.
+\mathrm{MCSE} = \frac{ \mathrm{SD} \left( \mathrm{AISE}_{1m},\ldots, \mathrm{AISE}_{Bm} \right) }{ \sqrt{B} }.
 $$
 
 The simulation results are therefore reported together with their Monte Carlo uncertainty rather than only as point estimates.
@@ -639,7 +551,7 @@ The procedure is:
 Performance is assessed using the Adjusted Rand Index:
 
 $$
-\operatorname{ARI}\in[-1,1].
+\mathrm{ARI}\in[-1,1].
 $$
 
 A higher ARI indicates that the estimated functions preserve the true cluster structure more accurately.
