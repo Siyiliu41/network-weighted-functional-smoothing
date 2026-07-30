@@ -363,14 +363,6 @@ Internally, this is expanded into a structure of the form
 s(yindex.vec) + ti(node, yindex.vec, ...)
 ```
 
-The specification uses:
-
-- the standard functional intercept;
-- no `c()` wrapper around the MRF term;
-- no `-1`.
-
-This allows the node-specific functions to differ in shape rather than only in level.
-
 ### M2: Network-weighted oracle smoothing
 
 As a diagnostic reference, the same network-weighted model is fitted with smoothing parameters selected over a prespecified grid to minimise the true reconstruction error.
