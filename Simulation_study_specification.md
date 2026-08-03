@@ -2,7 +2,7 @@
 
 ## Specification According to the ADEMP Framework
 
-**Status:** Prespecified before conducting and inspecting the main simulation results  
+**Status:** Prespecified before conducting and inspecting the main simulation results
 **Framework:** ADEMP framework proposed by Morris, White, and Crowther (2019)
 
 ## 1. Overview
@@ -49,8 +49,11 @@ The simulation study additionally addresses the following questions:
 6. In selected representative cells, how closely does REML approach restricted oracle smoothing-parameter selection?
 7. Does more accurate curve reconstruction improve a downstream clustering task?
 8. How frequently do numerical warnings, convergence problems, or failed fits occur?
+9. What is the reconstruction cost of supplying an actively misleading graph rather than the correct graph?
 
 The effect of neighbourhood density is evaluated primarily through the direct paired rook-versus-queen difference in AISE within otherwise identical design cells.
+
+The cost of graph misspecification is evaluated through the direct paired rewired-versus-correct-rook difference in AISE within otherwise identical false-graph control cells.
 
 ### 2.3 Expected qualitative results
 
@@ -83,7 +86,7 @@ $$
 t_j\in[0,1], \qquad j=1,\ldots,T, \qquad T=50.
 $$
 
-The formal core simulation uses $T=50$. The existing known-answer and smoke-test scripts use $T=30$ only as software-validation checks; the formal simulation drivers explicitly use the prespecified 50-point grid.
+The formal core simulation and the prespecified known-answer sanity check in Section 3.8 use $T=50$. Existing legacy known-answer and smoke-test scripts use $T=30$ only as software-validation checks; the formal simulation drivers explicitly use the prespecified 50-point grid.
 
 Within each simulation replication, all methods are applied to exactly the same simulated dataset. This allows paired comparisons between methods.
 
@@ -336,7 +339,7 @@ $$
 
 Both sets contain five nodes from cluster 2. Nodes are matched by row, so every boundary node and its interior comparator have the same outer-grid status and the same node degree under both rook and queen adjacency. This prevents the boundary comparison from being confounded by cluster membership or node degree.
 
-The primary boundary effect is evaluated as a difference-in-differences relative to nodewise smoothing, as defined in Section 6.5. Results based on all nodes adjacent to the cluster boundary may additionally be reported as a secondary descriptive analysis.
+The primary boundary effect is evaluated as a difference-in-differences relative to nodewise smoothing, as defined in Section 6.6. Results based on all nodes adjacent to the cluster boundary may additionally be reported as a secondary descriptive analysis.
 
 ### 3.7 Noise level and signal-to-noise ratios
 
@@ -415,6 +418,89 @@ $$
 
 core scenarios.
 
+#### Prespecified known-answer sanity check
+
+Before the main simulation is launched, a separate known-answer sanity check is conducted in a setting where the graph penalty should clearly improve reconstruction. Its fixed design is:
+
+| Component | Setting |
+|---|---|
+| Truth structure | Coordinate-smooth |
+| Structured-signal proportion | $\alpha=1$ |
+| Estimator graph | Rook |
+| Noise level | $\sigma=0.5$ |
+| Lattice | $5\times5$, $N=25$ |
+| Observation grid | $T=50$ |
+| Replications | $B_{\mathrm{sanity}}=50$ |
+| Primary comparison | Network-REML versus nodewise smoothing |
+
+Both methods are fitted to the same simulated dataset within each replication. Define the replication-specific sanity-check improvement as
+
+$$
+\Delta^{(\mathrm{sanity})}_b =
+\mathrm{AISE}_{b,\mathrm{nodewise}} -
+\mathrm{AISE}_{b,\mathrm{network}}.
+$$
+
+Its estimated mean and paired Monte Carlo standard error are
+
+$$
+\widehat{\Delta}^{(\mathrm{sanity})} =
+\frac{1}{B_{\mathrm{sanity}}}
+\sum_{b=1}^{B_{\mathrm{sanity}}}
+\Delta^{(\mathrm{sanity})}_b,
+$$
+
+and
+
+$$
+\mathrm{MCSE}
+\left(
+\widehat{\Delta}^{(\mathrm{sanity})}
+\right) =
+\frac{
+\mathrm{SD}
+\left(
+\Delta^{(\mathrm{sanity})}_1,\ldots,
+\Delta^{(\mathrm{sanity})}_{B_{\mathrm{sanity}}}
+\right)
+}{
+\sqrt{B_{\mathrm{sanity}}}
+}.
+$$
+
+The sanity check is passed only if all three prespecified criteria hold:
+
+$$
+\widehat{\Delta}^{(\mathrm{sanity})}>0,
+$$
+
+$$
+\widehat{\Delta}^{(\mathrm{sanity})}>
+2\,
+\mathrm{MCSE}
+\left(
+\widehat{\Delta}^{(\mathrm{sanity})}
+\right),
+$$
+
+and
+
+$$
+\frac{1}{B_{\mathrm{sanity}}}
+\sum_{b=1}^{B_{\mathrm{sanity}}}
+\mathbf{1}
+\left(
+\Delta^{(\mathrm{sanity})}_b>0
+\right)
+\geq0.80.
+$$
+
+These criteria require a positive average improvement, an improvement that is clear relative to Monte Carlo uncertainty, and improvement in at least 80% of replications. The check is diagnostic and is not included in the 16-cell core design or in the final core performance estimates.
+
+If the check fails, the main simulation is paused. Graph-to-node alignment, truth generation, basis representation, penalty construction, smoothing-parameter extraction, prediction, and performance-measure implementation are then inspected. The DGP and pass criteria are not tuned in response to the observed sanity-check performance. Any implementation correction is documented, and the sanity check is rerun with a new prespecified seed set before the main simulation starts.
+
+This formal $T=50$ check is distinct from the existing $T=30$ software smoke test, whose purpose is only to verify that the workflow runs.
+
 #### Additional negative controls
 
 Two distinct negative controls are included because an uninformative graph and a false graph represent different failure modes.
@@ -432,7 +518,44 @@ The rewiring seed and final adjacency list are fixed and saved before the main s
 
 The false-graph control is evaluated at $\alpha=0.9$ and $\sigma=0.5$ for both the coordinate-smooth and cluster-structured DGPs. The corresponding correct-rook cells are already part of the core factorial design, so only the additional rewired network fits are required.
 
-Before the main simulation, the pilot verifies that the rewired graph has substantially larger unnormalised Laplacian energy than the correct rook graph for the fixed structured truth. If this condition is not met, the rewiring is repeated using the prespecified seed sequence and the first graph satisfying the criteria above is retained. This selection is completed without inspecting method-performance results.
+To quantify whether the rewired graph is actively incompatible with the truth, define the purely structured deviation curve for DGP $d$ as
+
+$$
+\delta^{(S)}_{i,d}(t) =
+\sum_{k=1}^{3}s_{k,d}\theta^{(S)}_{ik,d}\phi_k(t).
+$$
+
+For graph $G$, its integrated unnormalised Laplacian energy is
+
+$$
+E_{d,G} =
+\frac{
+\sum_{(i,j)\in\mathcal{E}_G}
+\int_0^1
+\left[
+\delta^{(S)}_{i,d}(t)-\delta^{(S)}_{j,d}(t)
+\right]^2dt
+}{
+\sum_{i=1}^{N}
+\int_0^1
+\left[\delta^{(S)}_{i,d}(t)\right]^2dt
+}.
+$$
+
+The false-graph incompatibility ratio is
+
+$$
+Q_d =
+\frac{E_{d,\mathrm{rewired}}}{E_{d,\mathrm{rook}}}.
+$$
+
+In addition to the structural requirements above, the retained rewired graph must satisfy
+
+$$
+Q_d\geq1.5
+$$
+
+separately for both the coordinate-smooth and cluster-structured DGPs. Rewiring candidates are generated using a prespecified seed sequence, and the first graph satisfying all structural and energy criteria is retained. The criterion is evaluated using only the fixed structured truth, before unstructured components and observation errors are generated and without inspecting any estimator-performance results. The final seed, adjacency list, edge-overlap proportion, $E_{d,G}$ values, and $Q_d$ values are saved before the main simulation.
 
 The $\alpha=0$ control therefore represents useless graph information, whereas the rewired control represents actively misleading graph information.
 
@@ -521,6 +644,7 @@ Secondary estimands include:
 - reconstruction accuracy at individual nodes;
 - average reconstruction accuracy across all nodes;
 - the effect of neighbourhood density, evaluated through the direct paired rook-versus-queen difference in AISE within otherwise identical design cells;
+- the cost of an actively misleading graph, evaluated through the direct paired rewired-versus-correct-rook difference in AISE within otherwise identical false-graph control cells;
 - reconstruction accuracy at cluster boundaries;
 - reconstruction accuracy at interior cluster nodes;
 - the true cluster structure in the block-structured DGP;
@@ -780,7 +904,49 @@ The contrast is interpreted as follows:
 
 The density contrast is reported separately for each design cell and is not averaged across heterogeneous combinations of truth structure, structured-signal proportion, noise level, or graph size. Nodewise, pooled, and raw estimators do not depend on the neighbourhood graph. They are therefore fitted once per simulated dataset and their results are reused in both graph-density comparisons.
 
-### 6.5 Matched boundary difference-in-differences
+### 6.5 Direct paired contrast for graph misspecification
+
+To quantify the cost of supplying an actively misleading graph, the rewired-graph and correct-rook network fits are compared within the same false-graph control replication. Both fits use the same true curves, unstructured-component realisation, observation errors, observed data, basis dimensions, and fitting settings.
+
+Let $d\in\{\mathrm{coordinate},\mathrm{cluster}\}$ denote the DGP. For replication $b$, define
+
+$$
+\Delta^{(\mathrm{false})}_{bd} =
+\mathrm{AISE}_{bd,\mathrm{rewired}} -
+\mathrm{AISE}_{bd,\mathrm{rook}}.
+$$
+
+The DGP-specific mean cost of graph misspecification is estimated by
+
+$$
+\widehat{\Delta}^{(\mathrm{false})}_{d} =
+\frac{1}{B_d}
+\sum_{b=1}^{B_d}
+\Delta^{(\mathrm{false})}_{bd}.
+$$
+
+Its paired Monte Carlo standard error is
+
+$$
+\mathrm{MCSE}\left(\widehat{\Delta}^{(\mathrm{false})}_{d}\right) =
+\frac{
+\mathrm{SD}\left(
+\Delta^{(\mathrm{false})}_{bd}: b=1,\ldots,B_d
+\right)
+}{
+\sqrt{B_d}
+}.
+$$
+
+The contrast is interpreted as follows:
+
+- $\widehat{\Delta}^{(\mathrm{false})}_{d}>0$ indicates that the rewired graph produces greater node-averaged reconstruction error than the correct rook graph;
+- $\widehat{\Delta}^{(\mathrm{false})}_{d}<0$ indicates that the rewired graph produces lower error in that DGP;
+- values close to zero indicate little evidence of an accuracy cost attributable to graph misspecification.
+
+The contrast is reported separately for the coordinate-smooth and cluster-structured DGPs and is not averaged across them.
+
+### 6.6 Matched boundary difference-in-differences
 
 For the cluster-structured DGP, the primary boundary analysis compares the matched boundary and interior sets $\mathcal{B}_{\mathrm{matched}}$ and $\mathcal{I}_{\mathrm{matched}}$ defined in Section 3.6.
 
@@ -832,7 +998,7 @@ $$
 
 The primary boundary analysis concerns the network-weighted estimator. Boundary and interior ISE values may additionally be reported separately as descriptive summaries.
 
-### 6.6 Oracle gap
+### 6.7 Oracle gap
 
 For each oracle replication $b$, define the paired oracle gap
 
@@ -874,7 +1040,7 @@ $$
 
 Oracle-grid boundary-selection frequencies are reported separately. Smoothing-parameter ratios are not used as a primary performance measure.
 
-### 6.7 Monte Carlo uncertainty
+### 6.8 Monte Carlo uncertainty
 
 Monte Carlo standard errors are reported together with all estimated performance summaries using a formula appropriate to the corresponding statistic.
 
@@ -893,7 +1059,7 @@ For the primary network-versus-nodewise comparison, uncertainty is instead calcu
 
 The final number of simulation replications is determined from a prespecified MCSE target using the pilot estimate of the standard deviation of the paired differences. The exact rule is defined in Section 8.1.
 
-### 6.8 Smoothing diagnostics, numerical stability, and computational cost
+### 6.9 Smoothing diagnostics, numerical stability, and computational cost
 
 For every successful smooth-model fit, term-level and penalty-level diagnostics are stored before the fitted model object is discarded.
 
@@ -1012,6 +1178,7 @@ replications per core cell is conducted before the main simulation.
 The pilot is used to verify:
 
 - correct data and curve generation;
+- successful completion of the prespecified known-answer sanity check in Section 3.8;
 - the intended structured and unstructured signal variation;
 - basis adequacy through the projection-error criterion in Section 3.10;
 - numerical stability and computation time;
@@ -1104,6 +1271,7 @@ For every core combination of truth structure, structured-signal proportion, nei
 - estimated MISE and its marginal MCSE for every method;
 - mean paired AISE improvement $\widehat{\Delta}_m$ and its paired MCSE;
 - direct paired rook-versus-queen AISE difference $\widehat{\Delta}^{(\mathrm{density})}_{c}$ and its paired MCSE for each otherwise identical design cell;
+- direct paired rewired-versus-correct-rook AISE difference $\widehat{\Delta}^{(\mathrm{false})}_{d}$ and its paired MCSE for each false-graph control DGP;
 - aggregate rMISE relative to nodewise smoothing;
 - median and interquartile range of replication-specific RI;
 - mean, median, and selected quantiles of computation time;
@@ -1112,18 +1280,21 @@ For every core combination of truth structure, structured-signal proportion, nei
 
 For cluster-structured cells, matched boundary DiD and its paired MCSE are additionally reported. Restricted oracle results and the two $N=100$ cells are presented in separate tables.
 
+The known-answer sanity check is reported separately with its mean paired improvement, paired MCSE, proportion of replications with positive improvement, and pass/fail status. It is not pooled with the core simulation results.
+
 ### 9.2 Main figures
 
 The planned figures include:
 
 1. an interaction plot of paired AISE improvement by structured-signal proportion and noise level;
 2. a plot of the paired rook-versus-queen AISE difference and its MCSE by design cell;
-3. a heatmap of aggregate rMISE for network-weighted versus nodewise smoothing;
-4. boxplots of replication-specific paired AISE differences;
-5. matched boundary difference-in-differences for the cluster DGP;
-6. selected example curves showing truth, observations, and estimates;
-7. term-level log smoothing parameters and EDF diagnostics;
-8. optional clustering performance based on the Adjusted Rand Index.
+3. a plot of the paired rewired-versus-correct-rook AISE difference and its MCSE for each false-graph control DGP;
+4. a heatmap of aggregate rMISE for network-weighted versus nodewise smoothing;
+5. boxplots of replication-specific paired AISE differences;
+6. matched boundary difference-in-differences for the cluster DGP;
+7. selected example curves showing truth, observations, and estimates;
+8. term-level log smoothing parameters and EDF diagnostics;
+9. optional clustering performance based on the Adjusted Rand Index.
 
 Figures distinguish the 16 core cells from negative controls, larger-graph cells, oracle diagnostics, and other optional analyses.
 
@@ -1133,16 +1304,17 @@ Figures distinguish the 16 core cells from negative controls, larger-graph cells
 
 The core design choices are prespecified above. The following checks are completed using pilot or timing runs before the main performance results are inspected:
 
-1. verify that the relative unpenalised projection error is at most 2%;
-2. verify that $\sigma=0.2$ and $\sigma=0.5$ produce meaningfully distinct overall and deviation SNR values;
-3. verify the structural properties and Laplacian-energy contrast of the fixed rewired graph;
-4. determine the common core replication count using the paired-MCSE rule in Section 8.1;
-5. check the oracle-grid boundary-selection frequency and expand the grid if required;
-6. determine whether $B_{100}=100$ or $B_{100}=50$ using the prespecified timing rule;
-7. test with a toy example whether the `SpatFD` interface can predict a complete curve at an omitted node;
-8. decide whether optional clustering, `SpatFD`, and robustness analyses remain feasible after completing the required analyses.
+1. run the prespecified known-answer sanity check in Section 3.8 and verify that all three pass criteria are satisfied;
+2. verify that the relative unpenalised projection error is at most 2%;
+3. verify that $\sigma=0.2$ and $\sigma=0.5$ produce meaningfully distinct overall and deviation SNR values;
+4. verify that the fixed rewired graph satisfies all structural requirements and $Q_d\geq1.5$ separately for both DGPs;
+5. determine the common core replication count using the paired-MCSE rule in Section 8.1;
+6. check the oracle-grid boundary-selection frequency and expand the grid if required;
+7. determine whether $B_{100}=100$ or $B_{100}=50$ using the prespecified timing rule;
+8. test with a toy example whether the `SpatFD` interface can predict a complete curve at an omitted node;
+9. decide whether optional clustering, `SpatFD`, and robustness analyses remain feasible after completing the required analyses.
 
-Every resulting choice, diagnostic value, seed, and final scenario table is saved before the main simulation is launched. If a pilot check changes the DGP or fitting procedure, the affected pilot checks are repeated.
+Every resulting choice, diagnostic value, seed, and final scenario table is saved before the main simulation is launched. The main simulation does not begin unless the known-answer check passes. If a pilot check changes the DGP or fitting procedure, the affected pilot checks, including the known-answer check when relevant, are repeated.
 
 ---
 
@@ -1150,8 +1322,8 @@ Every resulting choice, diagnostic value, seed, and final scenario table is save
 
 If computational time is limited, analyses are prioritised as follows:
 
-1. **Core benchmark:** network-REML versus nodewise smoothing;
-2. **Known-answer sanity check:** coordinate-smooth truth with $\alpha=1$;
+1. **Known-answer sanity check:** coordinate-smooth truth with $\alpha=1$;
+2. **Core benchmark:** network-REML versus nodewise smoothing;
 3. **Negative controls:** $\alpha=0$ and the fixed rewired graph;
 4. **Pooled baseline;**
 5. **Matched cluster-boundary analysis and optional clustering task;**
@@ -1160,7 +1332,7 @@ If computational time is limited, analyses are prioritised as follows:
 8. **Optional robustness analyses;**
 9. **Leave-one-node-out comparison with `SpatFD`.**
 
-If further reductions are necessary, `SpatFD` is omitted first, followed by optional robustness analyses and then a reduction of the oracle scope. The core benchmark, negative controls, and fixed $N=100$ cells are retained.
+If further reductions are necessary, `SpatFD` is omitted first, followed by optional robustness analyses and then a reduction of the oracle scope. The known-answer sanity check, core benchmark, negative controls, and fixed $N=100$ cells are retained.
 
 ---
 
@@ -1177,9 +1349,10 @@ If further reductions are necessary, `SpatFD` is omitted first, followed by opti
 | Core methods | Network-REML, nodewise smoothing, and pooled smoothing |
 | Primary estimand | True node-specific functions $f_i(t)$ |
 | Primary measures | MISE and paired AISE improvement over nodewise smoothing with paired MCSE |
-| Secondary measures | Direct paired rook-versus-queen AISE contrast, rMISE, descriptive RI, matched boundary DiD, runtime, smoothing diagnostics, warnings and failures |
+| Secondary measures | Direct paired rook-versus-queen and rewired-versus-correct-rook AISE contrasts, rMISE, descriptive RI, matched boundary DiD, runtime, smoothing diagnostics, warnings and failures |
 | Core design | 16 factorial cells with a pilot-determined common $B\geq200$ |
-| Negative controls | $\alpha=0$ uninformative graph and fixed degree-preserving rewired graph |
+| Known-answer check | Coordinate-smooth truth, $\alpha=1$, rook graph, $\sigma=0.5$, $N=25$, $T=50$, and $B_{\mathrm{sanity}}=50$, with three prespecified pass criteria |
+| Negative controls | $\alpha=0$ uninformative graph and fixed degree-preserving rewired graph with $Q_d\geq1.5$ for both DGPs |
 | Larger graph | Two fixed $N=100$ cells: best case and negative control |
 | Oracle | Restricted 25-point grid in four cells with $B_{\mathrm{oracle}}=100$ |
 | Clustering | Optional secondary analysis using two-cluster $k$-means and ARI |
