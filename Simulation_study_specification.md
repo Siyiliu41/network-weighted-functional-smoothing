@@ -50,6 +50,8 @@ The simulation study additionally addresses the following questions:
 7. Does more accurate curve reconstruction improve a downstream clustering task?
 8. How frequently do numerical warnings, convergence problems, or failed fits occur?
 
+The effect of neighbourhood density is evaluated primarily through the direct paired rook-versus-queen difference in AISE within otherwise identical design cells.
+
 ### 2.3 Expected qualitative results
 
 The following qualitative results are expected:
@@ -334,7 +336,7 @@ $$
 
 Both sets contain five nodes from cluster 2. Nodes are matched by row, so every boundary node and its interior comparator have the same outer-grid status and the same node degree under both rook and queen adjacency. This prevents the boundary comparison from being confounded by cluster membership or node degree.
 
-The primary boundary effect is evaluated as a difference-in-differences relative to nodewise smoothing, as defined in Section 6.4. Results based on all nodes adjacent to the cluster boundary may additionally be reported as a secondary descriptive analysis.
+The primary boundary effect is evaluated as a difference-in-differences relative to nodewise smoothing, as defined in Section 6.5. Results based on all nodes adjacent to the cluster boundary may additionally be reported as a secondary descriptive analysis.
 
 ### 3.7 Noise level and signal-to-noise ratios
 
@@ -518,6 +520,7 @@ Secondary estimands include:
 
 - reconstruction accuracy at individual nodes;
 - average reconstruction accuracy across all nodes;
+- the effect of neighbourhood density, evaluated through the direct paired rook-versus-queen difference in AISE within otherwise identical design cells;
 - reconstruction accuracy at cluster boundaries;
 - reconstruction accuracy at interior cluster nodes;
 - the true cluster structure in the block-structured DGP;
@@ -735,7 +738,49 @@ $$
 
 Because this measure contains a random denominator and may produce extreme ratios, it is summarised using the median, interquartile range, and boxplots. It is not used as the primary inferential comparison and is not averaged to determine the number of replications.
 
-### 6.4 Matched boundary difference-in-differences
+### 6.4 Direct paired contrast for neighbourhood density
+
+To directly quantify the effect of neighbourhood density, rook and queen network fits are compared within the same replication. Because both fits use the same true curves, unstructured-component realisation, observation errors, and observed data, this is a paired comparison.
+
+Let $c$ denote a design cell defined by truth structure, structured-signal proportion, noise level, and graph size, but excluding the graph-density factor. For replication $b$ in cell $c$, define
+
+$$
+\Delta^{(\mathrm{density})}_{bc} =
+\mathrm{AISE}_{bc,\mathrm{rook}} -
+\mathrm{AISE}_{bc,\mathrm{queen}}.
+$$
+
+The cell-specific mean density effect is estimated by
+
+$$
+\widehat{\Delta}^{(\mathrm{density})}_{c} =
+\frac{1}{B_c}
+\sum_{b=1}^{B_c}
+\Delta^{(\mathrm{density})}_{bc}.
+$$
+
+Its paired Monte Carlo standard error is
+
+$$
+\mathrm{MCSE}\left(\widehat{\Delta}^{(\mathrm{density})}_{c}\right) =
+\frac{
+\mathrm{SD}\left(
+\Delta^{(\mathrm{density})}_{bc}: b=1,\ldots,B_c
+\right)
+}{
+\sqrt{B_c}
+}.
+$$
+
+The contrast is interpreted as follows:
+
+- $\widehat{\Delta}^{(\mathrm{density})}_{c}>0$ indicates lower node-averaged reconstruction error under the queen graph;
+- $\widehat{\Delta}^{(\mathrm{density})}_{c}<0$ indicates lower node-averaged reconstruction error under the rook graph;
+- values close to zero indicate little evidence of an accuracy difference attributable to neighbourhood density.
+
+The density contrast is reported separately for each design cell and is not averaged across heterogeneous combinations of truth structure, structured-signal proportion, noise level, or graph size. Nodewise, pooled, and raw estimators do not depend on the neighbourhood graph. They are therefore fitted once per simulated dataset and their results are reused in both graph-density comparisons.
+
+### 6.5 Matched boundary difference-in-differences
 
 For the cluster-structured DGP, the primary boundary analysis compares the matched boundary and interior sets $\mathcal{B}_{\mathrm{matched}}$ and $\mathcal{I}_{\mathrm{matched}}$ defined in Section 3.6.
 
@@ -787,7 +832,7 @@ $$
 
 The primary boundary analysis concerns the network-weighted estimator. Boundary and interior ISE values may additionally be reported separately as descriptive summaries.
 
-### 6.5 Oracle gap
+### 6.6 Oracle gap
 
 For each oracle replication $b$, define the paired oracle gap
 
@@ -829,7 +874,7 @@ $$
 
 Oracle-grid boundary-selection frequencies are reported separately. Smoothing-parameter ratios are not used as a primary performance measure.
 
-### 6.6 Monte Carlo uncertainty
+### 6.7 Monte Carlo uncertainty
 
 Monte Carlo standard errors are reported together with all estimated performance summaries using a formula appropriate to the corresponding statistic.
 
@@ -848,7 +893,7 @@ For the primary network-versus-nodewise comparison, uncertainty is instead calcu
 
 The final number of simulation replications is determined from a prespecified MCSE target using the pilot estimate of the standard deviation of the paired differences. The exact rule is defined in Section 8.1.
 
-### 6.7 Smoothing diagnostics, numerical stability, and computational cost
+### 6.8 Smoothing diagnostics, numerical stability, and computational cost
 
 For every successful smooth-model fit, term-level and penalty-level diagnostics are stored before the fitted model object is discarded.
 
@@ -1058,6 +1103,7 @@ For every core combination of truth structure, structured-signal proportion, nei
 
 - estimated MISE and its marginal MCSE for every method;
 - mean paired AISE improvement $\widehat{\Delta}_m$ and its paired MCSE;
+- direct paired rook-versus-queen AISE difference $\widehat{\Delta}^{(\mathrm{density})}_{c}$ and its paired MCSE for each otherwise identical design cell;
 - aggregate rMISE relative to nodewise smoothing;
 - median and interquartile range of replication-specific RI;
 - mean, median, and selected quantiles of computation time;
@@ -1071,12 +1117,13 @@ For cluster-structured cells, matched boundary DiD and its paired MCSE are addit
 The planned figures include:
 
 1. an interaction plot of paired AISE improvement by structured-signal proportion and noise level;
-2. a heatmap of aggregate rMISE for network-weighted versus nodewise smoothing;
-3. boxplots of replication-specific paired AISE differences;
-4. matched boundary difference-in-differences for the cluster DGP;
-5. selected example curves showing truth, observations, and estimates;
-6. term-level log smoothing parameters and EDF diagnostics;
-7. optional clustering performance based on the Adjusted Rand Index.
+2. a plot of the paired rook-versus-queen AISE difference and its MCSE by design cell;
+3. a heatmap of aggregate rMISE for network-weighted versus nodewise smoothing;
+4. boxplots of replication-specific paired AISE differences;
+5. matched boundary difference-in-differences for the cluster DGP;
+6. selected example curves showing truth, observations, and estimates;
+7. term-level log smoothing parameters and EDF diagnostics;
+8. optional clustering performance based on the Adjusted Rand Index.
 
 Figures distinguish the 16 core cells from negative controls, larger-graph cells, oracle diagnostics, and other optional analyses.
 
@@ -1130,7 +1177,7 @@ If further reductions are necessary, `SpatFD` is omitted first, followed by opti
 | Core methods | Network-REML, nodewise smoothing, and pooled smoothing |
 | Primary estimand | True node-specific functions $f_i(t)$ |
 | Primary measures | MISE and paired AISE improvement over nodewise smoothing with paired MCSE |
-| Secondary measures | rMISE, descriptive RI, matched boundary DiD, runtime, smoothing diagnostics, warnings and failures |
+| Secondary measures | Direct paired rook-versus-queen AISE contrast, rMISE, descriptive RI, matched boundary DiD, runtime, smoothing diagnostics, warnings and failures |
 | Core design | 16 factorial cells with a pilot-determined common $B\geq200$ |
 | Negative controls | $\alpha=0$ uninformative graph and fixed degree-preserving rewired graph |
 | Larger graph | Two fixed $N=100$ cells: best case and negative control |
