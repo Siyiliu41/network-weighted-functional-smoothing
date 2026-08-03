@@ -194,20 +194,18 @@ where:
 Before mixing, both components are centred, scaled to unit empirical variance, and made orthogonal:
 
 $$
-\mathbf{1}^{\top}\boldsymbol{\theta}^{(S)}_k
-=
-\mathbf{1}^{\top}\boldsymbol{\theta}^{(U)}_k
-=0,
+\mathbf{1}^{\top}\boldsymbol{\theta}^{(S)}_k = 0,
+\qquad
+\mathbf{1}^{\top}\boldsymbol{\theta}^{(U)}_k = 0,
 $$
 
 $$
-\frac{1}{N}\left\|\boldsymbol{\theta}^{(S)}_k\right\|^2
-=
-\frac{1}{N}\left\|\boldsymbol{\theta}^{(U)}_k\right\|^2
-=1,
+\frac{1}{N}\left\lVert\boldsymbol{\theta}^{(S)}_k\right\rVert_2^2 = 1,
+\qquad
+\frac{1}{N}\left\lVert\boldsymbol{\theta}^{(U)}_k\right\rVert_2^2 = 1,
 \qquad
 \left(\boldsymbol{\theta}^{(S)}_k\right)^{\top}
-\boldsymbol{\theta}^{(U)}_k=0.
+\boldsymbol{\theta}^{(U)}_k = 0.
 $$
 
 Under this construction, $\alpha$ has an exact variance-partition interpretation while the marginal coefficient variance remains fixed across signal-strength scenarios.
@@ -331,9 +329,13 @@ The cluster labels, structured contrasts, and unstructured-component realisation
 Under edge-sharing grid adjacency, the complete set of nodes adjacent to the true cluster boundary consists of nodes in columns 2 and 3. For the primary boundary analysis, the evaluation sets are
 
 $$
-\mathcal{B}^{\ast}=\{i:\mathrm{column}(i)=3\},
+\mathcal{B}_{\mathrm{matched}}
+=
+\lbrace i : \mathrm{col}(i)=3 \rbrace,
 \qquad
-\mathcal{I}^{\ast}=\{i:\mathrm{column}(i)=4\}.
+\mathcal{I}_{\mathrm{matched}}
+=
+\lbrace i : \mathrm{col}(i)=4 \rbrace.
 $$
 
 Both sets contain five nodes from cluster 2. Nodes are matched by row, so every boundary node and its interior comparator have the same outer-grid status and the same node degree under both rook and queen adjacency. This prevents the boundary comparison from being confounded by cluster membership or node degree.
@@ -751,7 +753,7 @@ Because this measure contains a random denominator and may produce extreme ratio
 
 ### 6.4 Matched boundary difference-in-differences
 
-For the cluster-structured DGP, the primary boundary analysis compares the matched boundary and interior sets $\mathcal{B}^{\ast}$ and $\mathcal{I}^{\ast}$ defined in Section 3.6.
+For the cluster-structured DGP, the primary boundary analysis compares the matched boundary and interior sets $\mathcal{B}_{\mathrm{matched}}$ and $\mathcal{I}_{\mathrm{matched}}$ defined in Section 3.6.
 
 For node $i$, replication $b$, and method $m$, first define the ISE difference relative to nodewise smoothing:
 
@@ -770,14 +772,14 @@ The replication-specific matched boundary effect is
 $$
 \mathrm{DiD}_{bm}
 =
-\frac{1}{|\mathcal{B}^{\ast}|}
-\sum_{i\in\mathcal{B}^{\ast}}d_{ibm}
+\frac{1}{|\mathcal{B}_{\mathrm{matched}}|}
+\sum_{i\in\mathcal{B}_{\mathrm{matched}}}d_{ibm}
 -
-\frac{1}{|\mathcal{I}^{\ast}|}
-\sum_{i\in\mathcal{I}^{\ast}}d_{ibm}.
+\frac{1}{|\mathcal{I}_{\mathrm{matched}}|}
+\sum_{i\in\mathcal{I}_{\mathrm{matched}}}d_{ibm}.
 $$
 
-In the core $5\times5$ cluster DGP, $|\mathcal{B}^{\ast}|=|\mathcal{I}^{\ast}|=5$, and boundary and interior nodes are matched by lattice row.
+In the core $5\times5$ cluster DGP, $|\mathcal{B}_{\mathrm{matched}}|=|\mathcal{I}_{\mathrm{matched}}|=5$, and boundary and interior nodes are matched by lattice row.
 
 The interpretation is:
 
@@ -1021,10 +1023,10 @@ The MCSE tolerance for cell $c$ is
 $$
 \tau_c
 =
-\max\left\{
+\max\left(
 0.10\left|\overline{\Delta}^{\mathrm{pilot}}_c\right|,
 0.01\widehat{\mathrm{MISE}}^{\mathrm{pilot}}_{\mathrm{nodewise},c}
-\right\}.
+\right).
 $$
 
 The first term targets a paired MCSE no larger than 10% of the estimated paired effect. The second term provides an absolute fallback when the paired effect is close to zero, as expected in some negative-control cells.
@@ -1048,7 +1050,7 @@ B
 =
 50\left\lceil
 \frac{
-\max\left\{200,\max_{c}B_c\right\}
+\max\left(200,\max_{c}B_c\right)
 }{50}
 \right\rceil.
 $$
