@@ -178,8 +178,7 @@ The true coefficient fields are generated independently of the rook or queen gra
 $$
 \boldsymbol{\theta}_k =
 s_k\left[
-\sqrt{\alpha}\,\boldsymbol{\theta}^{(S)}_k
-+
+\sqrt{\alpha}\,\boldsymbol{\theta}^{(S)}_k +
 \sqrt{1-\alpha}\,\boldsymbol{\theta}^{(U)}_k
 \right],
 $$
@@ -227,8 +226,7 @@ $$
 the unnormalised Laplacian used by the MRF penalty. The corresponding energy is
 
 $$
-R^{\mathrm{MRF}}_{k,G}
-=
+R^{\mathrm{MRF}}_{k,G} =
 \frac{
 \boldsymbol{\theta}_k^{\top}L_G\boldsymbol{\theta}_k
 }{
@@ -241,8 +239,7 @@ Because this is the Laplacian associated with the neighbourhood list used by `bs
 For a degree-adjusted descriptive comparison between graph densities, the normalised Laplacian
 
 $$
-L_{\mathrm{norm},G}
-=
+L_{\mathrm{norm},G} =
 I-D_G^{-1/2}A_GD_G^{-1/2}
 $$
 
@@ -316,8 +313,7 @@ The unstructured component $\boldsymbol{\theta}^{(U)}_k$ is generated from a sta
 $$
 \boldsymbol{\theta}_k =
 s_k\left[
-\sqrt{\alpha}\,\boldsymbol{\theta}^{(S)}_k
-+
+\sqrt{\alpha}\,\boldsymbol{\theta}^{(S)}_k +
 \sqrt{1-\alpha}\,\boldsymbol{\theta}^{(U)}_k
 \right].
 $$
@@ -329,12 +325,10 @@ The cluster labels, structured contrasts, and unstructured-component realisation
 Under edge-sharing grid adjacency, the complete set of nodes adjacent to the true cluster boundary consists of nodes in columns 2 and 3. For the primary boundary analysis, the evaluation sets are
 
 $$
-\mathcal{B}_{\mathrm{matched}}
-=
+\mathcal{B}_{\mathrm{matched}} =
 \lbrace i : \mathrm{col}(i)=3 \rbrace,
 \qquad
-\mathcal{I}_{\mathrm{matched}}
-=
+\mathcal{I}_{\mathrm{matched}} =
 \lbrace i : \mathrm{col}(i)=4 \rbrace.
 $$
 
@@ -363,8 +357,7 @@ in information per node.
 Two signal-to-noise ratios are documented. First, define the grand mean of the true evaluations as
 
 $$
-\overline{f}
-=
+\overline{f} =
 \frac{1}{NT}
 \sum_{i=1}^{N}\sum_{j=1}^{T}f_i(t_j).
 $$
@@ -372,8 +365,7 @@ $$
 The overall signal-to-noise ratio is
 
 $$
-\mathrm{SNR}_{\mathrm{overall}}
-=
+\mathrm{SNR}_{\mathrm{overall}} =
 \frac{
 \frac{1}{NT}
 \sum_{i=1}^{N}\sum_{j=1}^{T}
@@ -386,8 +378,7 @@ $$
 Because every method reconstructs the common mean function $\mu(t)$, the contrast between methods is driven primarily by the node-specific deviations. Therefore, the deviation signal-to-noise ratio is additionally reported:
 
 $$
-\mathrm{SNR}_{\mathrm{dev}}
-=
+\mathrm{SNR}_{\mathrm{dev}} =
 \frac{
 \frac{1}{NT}
 \sum_{i=1}^{N}\sum_{j=1}^{T}
@@ -584,8 +575,7 @@ For each oracle dataset, $\lambda_{\mathrm{int}}$ is fixed at its REML estimate.
 The initial grid is defined relative to the corresponding REML estimates:
 
 $$
-\lambda_{d}^{(g)}
-=
+\lambda_{d}^{(g)} =
 \widehat{\lambda}_{d,\mathrm{REML}}\exp(g),
 \qquad
 g\in\{-4,-2,0,2,4\},
@@ -696,10 +686,8 @@ Because every method is fitted to the same simulated dataset within replication 
 For method $m$, define the replication-specific AISE improvement
 
 $$
-\Delta_{bm}
-=
-\mathrm{AISE}_{b,\mathrm{nodewise}}
--
+\Delta_{bm} =
+\mathrm{AISE}_{b,\mathrm{nodewise}} -
 \mathrm{AISE}_{bm}.
 $$
 
@@ -708,16 +696,14 @@ Thus, $\Delta_{bm}>0$ indicates that method $m$ has a lower node-averaged recons
 The estimated mean paired improvement is
 
 $$
-\widehat{\Delta}_m
-=
+\widehat{\Delta}_m =
 \frac{1}{B}\sum_{b=1}^{B}\Delta_{bm}.
 $$
 
 Its Monte Carlo standard error is
 
 $$
-\mathrm{MCSE}\left(\widehat{\Delta}_m\right)
-=
+\mathrm{MCSE}\left(\widehat{\Delta}_m\right) =
 \frac{
 \mathrm{SD}\left(\Delta_{1m},\ldots,\Delta_{Bm}\right)
 }{
@@ -730,8 +716,7 @@ This paired MCSE is the primary Monte Carlo uncertainty measure for the network-
 At the aggregate level, the MISE ratio is
 
 $$
-\mathrm{rMISE}_m
-=
+\mathrm{rMISE}_m =
 \frac{
 \widehat{\mathrm{MISE}}_m
 }{
@@ -744,8 +729,7 @@ Values below 1 favour method $m$.
 For descriptive replication-level summaries, relative improvement is defined as
 
 $$
-\mathrm{RI}_{bm}
-=
+\mathrm{RI}_{bm} =
 100\frac{\Delta_{bm}}{\mathrm{AISE}_{b,\mathrm{nodewise}}}.
 $$
 
@@ -758,10 +742,8 @@ For the cluster-structured DGP, the primary boundary analysis compares the match
 For node $i$, replication $b$, and method $m$, first define the ISE difference relative to nodewise smoothing:
 
 $$
-d_{ibm}
-=
-\mathrm{ISE}_{ibm}
--
+d_{ibm} =
+\mathrm{ISE}_{ibm} -
 \mathrm{ISE}_{ib,\mathrm{nodewise}}.
 $$
 
@@ -770,11 +752,9 @@ Positive values of $d_{ibm}$ indicate that method $m$ has a larger reconstructio
 The replication-specific matched boundary effect is
 
 $$
-\mathrm{DiD}_{bm}
-=
+\mathrm{DiD}_{bm} =
 \frac{1}{|\mathcal{B}_{\mathrm{matched}}|}
-\sum_{i\in\mathcal{B}_{\mathrm{matched}}}d_{ibm}
--
+\sum_{i\in\mathcal{B}_{\mathrm{matched}}}d_{ibm} -
 \frac{1}{|\mathcal{I}_{\mathrm{matched}}|}
 \sum_{i\in\mathcal{I}_{\mathrm{matched}}}d_{ibm}.
 $$
@@ -790,16 +770,14 @@ The interpretation is:
 Across replications, the estimated mean boundary effect is
 
 $$
-\widehat{\mathrm{DiD}}_m
-=
+\widehat{\mathrm{DiD}}_m =
 \frac{1}{B}\sum_{b=1}^{B}\mathrm{DiD}_{bm}.
 $$
 
 Its Monte Carlo standard error is calculated from the replication-specific paired effects:
 
 $$
-\mathrm{MCSE}\left(\widehat{\mathrm{DiD}}_m\right)
-=
+\mathrm{MCSE}\left(\widehat{\mathrm{DiD}}_m\right) =
 \frac{
 \mathrm{SD}\left(\mathrm{DiD}_{1m},\ldots,\mathrm{DiD}_{Bm}\right)
 }{
@@ -814,10 +792,8 @@ The primary boundary analysis concerns the network-weighted estimator. Boundary 
 For each oracle replication $b$, define the paired oracle gap
 
 $$
-G_b
-=
-\mathrm{AISE}_{b,\mathrm{network,REML}}
--
+G_b =
+\mathrm{AISE}_{b,\mathrm{network,REML}} -
 \mathrm{AISE}_{b,\mathrm{network,oracle}}.
 $$
 
@@ -826,8 +802,7 @@ Because the oracle grid includes the REML interaction-parameter pair, $G_b$ shou
 The estimated mean oracle gap is
 
 $$
-\widehat{G}
-=
+\widehat{G} =
 \frac{1}{B_{\mathrm{oracle}}}
 \sum_{b=1}^{B_{\mathrm{oracle}}}G_b,
 $$
@@ -835,8 +810,7 @@ $$
 with paired Monte Carlo standard error
 
 $$
-\mathrm{MCSE}(\widehat{G})
-=
+\mathrm{MCSE}(\widehat{G}) =
 \frac{
 \mathrm{SD}(G_1,\ldots,G_{B_{\mathrm{oracle}}})
 }{
@@ -847,8 +821,7 @@ $$
 For each interaction direction, the difference between oracle-selected and REML log smoothing parameters is additionally summarised:
 
 $$
-\log\widehat{\lambda}_{d,\mathrm{oracle}}
--
+\log\widehat{\lambda}_{d,\mathrm{oracle}} -
 \log\widehat{\lambda}_{d,\mathrm{REML}},
 \qquad
 d\in\{\mathrm{graph},\mathrm{time}\}.
@@ -863,8 +836,7 @@ Monte Carlo standard errors are reported together with all estimated performance
 For the estimated MISE of method $m$, the marginal MCSE is
 
 $$
-\mathrm{MCSE}\left(\widehat{\mathrm{MISE}}_m\right)
-=
+\mathrm{MCSE}\left(\widehat{\mathrm{MISE}}_m\right) =
 \frac{
 \mathrm{SD}\left(\mathrm{AISE}_{1m},\ldots,\mathrm{AISE}_{Bm}\right)
 }{
@@ -938,26 +910,22 @@ For the cluster-structured DGP, a secondary analysis examines whether the estima
 For method $m$ and replication $b$, the estimated common mean is
 
 $$
-\widehat{\mu}_{bm}(t_j)
-=
+\widehat{\mu}_{bm}(t_j) =
 \frac{1}{N}\sum_{i=1}^{N}\widehat{f}_{ibm}(t_j),
 $$
 
 and the estimated node-specific deviations are
 
 $$
-\widehat{\delta}_{ibm}(t_j)
-=
-\widehat{f}_{ibm}(t_j)
--
+\widehat{\delta}_{ibm}(t_j) =
+\widehat{f}_{ibm}(t_j) -
 \widehat{\mu}_{bm}(t_j).
 $$
 
 Each estimated deviation is represented on the common evaluation grid using trapezoidal integration weights $w_j$. The clustering feature vector is
 
 $$
-\boldsymbol{z}_{ibm}
-=
+\boldsymbol{z}_{ibm} =
 \left(
 \sqrt{w_1}\widehat{\delta}_{ibm}(t_1),
 \ldots,
@@ -1009,8 +977,7 @@ The pilot is used to verify:
 Let $c$ index a core simulation cell. From the pilot replications, let
 
 $$
-\overline{\Delta}^{\mathrm{pilot}}_c
-=
+\overline{\Delta}^{\mathrm{pilot}}_c =
 \frac{1}{B_{\mathrm{pilot}}}
 \sum_{b=1}^{B_{\mathrm{pilot}}}
 \Delta_{bc}
@@ -1021,8 +988,7 @@ denote the pilot mean paired improvement, and let $s^{\mathrm{pilot}}_{\Delta,c}
 The MCSE tolerance for cell $c$ is
 
 $$
-\tau_c
-=
+\tau_c =
 \max\left(
 0.10\left|\overline{\Delta}^{\mathrm{pilot}}_c\right|,
 0.01\widehat{\mathrm{MISE}}^{\mathrm{pilot}}_{\mathrm{nodewise},c}
@@ -1034,8 +1000,7 @@ The first term targets a paired MCSE no larger than 10% of the estimated paired 
 The required number of main-simulation replications for cell $c$ is estimated as
 
 $$
-B_c
-=
+B_c =
 \left\lceil
 \left(
 \frac{s^{\mathrm{pilot}}_{\Delta,c}}{\tau_c}
@@ -1046,8 +1011,7 @@ $$
 A common replication count is used for all core cells:
 
 $$
-B
-=
+B =
 50\left\lceil
 \frac{
 \max\left(200,\max_{c}B_c\right)
