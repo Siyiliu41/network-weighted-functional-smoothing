@@ -660,6 +660,29 @@ This differs from functional kriging, where the usual objective is to predict an
 
 ## 5. Methods
 
+### Common fitting and evaluation rules
+
+All reconstruction methods receive exactly the same observed $N\times T$ data matrix within a simulation cell and are evaluated against the same true curves on the prespecified 50-point grid $t_1,\ldots,t_T$. No method-specific preprocessing, observation weights, or outcome-dependent basis changes are used.
+
+The temporal smooths use cubic P-spline bases with first-order difference penalties, specified by `bs = "ps"` and `m = c(2, 1)`. The basis dimensions are fixed before the main simulation at
+
+$$
+K_{\mathrm{int}}=10, \qquad K_{\mathrm{dev}}=15,
+$$
+
+subject only to the prespecified projection check in Section 3.10. Smoothing parameters are estimated by REML unless a method is explicitly labelled as an oracle. The basis dimension, penalty type, fitting method, and prediction grid are not adjusted after inspecting replication-specific reconstruction errors.
+
+### M0: Raw observations
+
+The no-smoothing benchmark is defined on the observation grid by
+
+$$
+\widehat f_i(t_j)=Y_i(t_j),
+\qquad i=1,\ldots,N,\quad j=1,\ldots,T.
+$$
+
+It provides a descriptive reference for the reduction in observation noise achieved by smoothing. It is not a fitted model, does not use graph information, and is not treated as a primary competitor.
+
 ### M1: Network-weighted smoothing with REML
 
 The primary method under investigation is `netf_smooth()` from the `netfunsmooth` package. The functional-regression representation and smoothing-parameter estimation follow Greven and Scheipl (2017) and Wood, Pya, and Säfken (2016).
@@ -669,6 +692,20 @@ The estimator uses a tensor-product penalised representation with:
 - a temporal smoothness penalty;
 - an MRF penalty based on the graph Laplacian;
 - REML-based selection of the smoothing parameters.
+
+The model is fitted to all $NT$ observations simultaneously with a Gaussian identity-link model. The functional intercept uses
+
+```r
+bs.int = list(bs = "ps", k = 10, m = c(2, 1))
+```
+
+and the temporal marginal basis of the node-by-time interaction uses
+
+```r
+bs.yindex = list(bs = "ps", k = 15, m = c(2, 1))
+```
+
+The graph marginal has `k = N`. The call uses `algorithm = "gam"`, `method = "REML"`, `tensortype = "ti"`, and `sandwich = "none"`; these settings are held fixed across all core cells. The sandwich setting concerns covariance estimation and does not change the reconstruction target, but fixing it avoids method-dependent computational overhead in the simulation.
 
 The underlying `pffr` specification contains a functional mean and a node-by-time interaction:
 
@@ -686,6 +723,8 @@ Internally, this is expanded into a structure of the form
 ```r
 s(yindex.vec) + ti(node, yindex.vec, ...)
 ```
+
+The fitted values are returned for all observed nodes on the same 50-point grid used to generate and evaluate the data. Rook, queen, and rewired versions differ only in the neighbourhood list supplied to the MRF marginal.
 
 ### M2: Restricted network-weighted oracle smoothing
 
@@ -745,7 +784,17 @@ This method does not use graph information but preserves node-specific variation
 
 It is the most important comparator because it directly assesses whether the graph penalty provides an improvement beyond ordinary temporal smoothing.
 
-Where possible, M1 and M3 use comparable temporal bases and the same type of smoothing-parameter selection.
+For each node $i$, the $T=50$ observations are fitted separately using
+
+```r
+mgcv::gam(
+  y ~ s(t, bs = "ps", k = 15, m = c(2, 1)),
+  family = gaussian(),
+  method = "REML"
+)
+```
+
+Thus, M3 uses the same P-spline type, basis dimension, difference-penalty order, Gaussian likelihood, REML criterion, time range, and prediction grid as the temporal marginal of the network interaction. Each node receives its own independently estimated smoothing parameter. The basis dimension is fixed across nodes and replications and is not tuned using true-curve reconstruction error.
 
 ### M4: Pooled mean smoothing
 
@@ -761,7 +810,19 @@ $$
 \widehat f_i(t)=\widehat\mu(t).
 $$
 
-This method represents complete pooling. It may have low variance but cannot represent systematic differences between node-specific curves.
+The model is fitted once to all $NT$ scalar observations using
+
+```r
+mgcv::gam(
+  y ~ s(t, bs = "ps", k = 10, m = c(2, 1)),
+  family = gaussian(),
+  method = "REML"
+)
+```
+
+It therefore uses the same temporal basis specification as the functional intercept of M1. The resulting mean curve is predicted on the prespecified 50-point grid and copied to all nodes.
+
+This method represents complete pooling. It may have low variance but cannot represent systematic differences between node-specific curves. It is therefore a diagnostic benchmark for the cost of ignoring node identity rather than a primary competitor to M1.
 
 ### M5: Functional kriging with `SpatFD`
 
@@ -1106,11 +1167,35 @@ The following replication-level outcomes are additionally stored for every metho
 - EDF-near-rank flags;
 - oracle-grid boundary flags, where applicable.
 
+For replication $b$, design cell $c$, and method $m$, define the fit-success indicator
+
+$$
+S_{bcm}=
+\begin{cases}
+1, & \text{if the fit returns without an error, does not report non-convergence, and produces finite predictions at all nodes and time points},\\
+0, & \text{otherwise}.
+\end{cases}
+$$
+
+When a fitting routine exposes an optimiser convergence indicator, that indicator must confirm convergence. A warning alone, an extreme smoothing-parameter flag, EDF saturation, or an oracle-grid boundary selection is retained as a diagnostic and does not by itself set $S_{bcm}=0$.
+
 The analysis reports mean, median, and selected quantiles of computation time, log smoothing parameters, and EDF values, together with the proportions of warnings, failures, non-convergence, extreme smoothing parameters, EDF saturation, and oracle boundary selections.
 
-Failed fits are not silently removed. Performance measures are reported for successful fits, while successful and unsuccessful fit counts are presented separately.
+Failed fits are not silently removed. Performance measures are reported for successful fits, while successful and unsuccessful fit counts are presented separately. A failed fit counts as a completed attempted fit: its error and diagnostic record are saved, and its seed is neither replaced nor rerun merely to obtain a successful result.
 
-Paired comparisons use replications in which both methods being compared fitted successfully. If failure rates are non-negligible, the number and characteristics of excluded paired comparisons are reported.
+For a paired comparison of methods $m_1$ and $m_2$, define the number of jointly successful replications as
+
+$$
+n^{\mathrm{pair}}_{c,m_1,m_2} =
+\sum_{b=1}^{B}
+S_{bc m_1}S_{bc m_2}.
+$$
+
+The paired mean and its MCSE are calculated only from these jointly successful replications, with $n^{\mathrm{pair}}_{c,m_1,m_2}$ replacing $B$ in both the mean and the MCSE denominator. The attempted replication count, method-specific failure rates, jointly successful count, and characteristics of excluded datasets are reported alongside every affected comparison.
+
+Marginal method-specific performance estimates analogously use that method's number of successful fits, rather than the attempted count $B$, in their mean and MCSE formulas.
+
+The prespecified fit-failure threshold is 5% per method and design cell. If any fitted core method exceeds this threshold in any core cell during the pilot, the main simulation is paused while the implementation and numerical diagnostics are investigated. In the main simulation, failed fits are never replaced. If a final failure rate exceeds 5%, the affected paired performance result is explicitly labelled as conditional on joint fitting success and interpreted together with the failure analysis.
 
 ---
 
@@ -1173,7 +1258,7 @@ $$
 B_{\mathrm{pilot}}=50
 $$
 
-replications per core cell is conducted before the main simulation.
+attempted replications per core cell is conducted before the main simulation. Here and below, a replication count denotes the number of prespecified datasets on which fitting is attempted, not the number of successful fits. Replications are not added or regenerated to compensate for fitting failures.
 
 The pilot is used to verify:
 
@@ -1186,12 +1271,21 @@ The pilot is used to verify:
 - correct implementation of all performance measures;
 - the variability of the paired network-versus-nodewise AISE differences.
 
-Let $c$ index a core simulation cell. From the pilot replications, let
+Let $c$ index a core simulation cell. The replication-count rule is based only on the primary network-REML-versus-nodewise comparison in the 16 core cells; negative controls, oracle fits, larger-graph cells, clustering, and other optional analyses do not determine the core replication count. Let
+
+$$
+n^{\mathrm{pilot,pair}}_c =
+\sum_{b=1}^{B_{\mathrm{pilot}}}
+S_{bc,\mathrm{network}}
+S_{bc,\mathrm{nodewise}}
+$$
+
+denote the number of jointly successful pilot pairs in core cell $c$. From those pairs, let
 
 $$
 \overline{\Delta}^{\mathrm{pilot}}_c =
-\frac{1}{B_{\mathrm{pilot}}}
-\sum_{b=1}^{B_{\mathrm{pilot}}}
+\frac{1}{n^{\mathrm{pilot,pair}}_c}
+\sum_{b:\,S_{bc,\mathrm{network}}S_{bc,\mathrm{nodewise}}=1}
 \Delta_{bc}
 $$
 
@@ -1207,7 +1301,7 @@ $$
 \right).
 $$
 
-The first term targets a paired MCSE no larger than 10% of the estimated paired effect. The second term provides an absolute fallback when the paired effect is close to zero, as expected in some negative-control cells.
+The first term targets a paired MCSE no larger than 10% of the estimated paired effect. The second term provides an absolute fallback when the paired effect is close to zero in a core cell.
 
 The required number of main-simulation replications for cell $c$ is estimated as
 
@@ -1231,7 +1325,9 @@ B =
 \right\rceil.
 $$
 
-Thus, the main simulation uses at least 200 replications per cell and rounds the required number upward to a multiple of 50. Using a common $B$ preserves balanced paired comparisons across cells.
+Thus, the main simulation attempts at least 200 replications per cell and rounds the required number upward to a multiple of 50. Using a common $B$ preserves a balanced set of attempted datasets across cells. The realised jointly successful counts used in paired analyses may be smaller and are reported separately.
+
+If the calculated $B$ is not computationally feasible, it is not silently truncated. The unmet MCSE target is documented, and optional analyses are reduced according to Section 11 before any change to the core replication count is considered.
 
 Pilot replications are not included in the final performance estimates. If the DGP or fitting procedure is changed after the pilot, the relevant pilot checks and the replication calculation are repeated before the main simulation is started.
 
@@ -1241,22 +1337,24 @@ Each replication $b$ is assigned a unique master seed. Deterministic substreams 
 
 Common random numbers are used for paired comparisons. Within replication $b$:
 
-- the same structured and unstructured coefficient components are reused across the paired rook and queen cells;
+- within each DGP and graph size, the same centred and standardised structured and unstructured coefficient components are reused across all values of $\alpha$, with only the prespecified weights $\sqrt{\alpha}$ and $\sqrt{1-\alpha}$ changed;
+- the same resulting truth is reused across the paired rook and queen cells;
 - the same standard-normal error realisation is reused across noise levels and multiplied by the corresponding value of $\sigma$;
 - every method fitted within a cell receives exactly the same true functions and observed dataset;
-- the network and nodewise methods are therefore compared on identical data.
+- the network and nodewise methods are therefore compared on identical data;
+- raw, nodewise, and pooled estimators, which do not depend on the estimator graph, are computed once per simulated dataset and their results are reused in the paired rook-versus-queen analysis.
 
 The simulation is processed in replication-major order:
 
 1. generate all random components required for replication $b$;
 2. run every prespecified core cell for replication $b$;
 3. fit all methods and calculate all performance measures for those cells;
-4. save a replication-level result object and mark replication $b$ as complete;
+4. save a replication-level result object containing either a success record or a failure record for every attempted fit, and mark replication $b$ as complete;
 5. proceed to replication $b+1$.
 
-A replication is included in the aggregated results only after all required core cells have been completed and saved. If execution stops during replication $b$, that incomplete replication is recomputed when the run resumes.
+A replication is included in the aggregated results only after all required core fits have been attempted and a success or failure record has been saved for each one. If execution stops before this complete result object is saved, the interrupted replication is recomputed from its original master seed when the run resumes. By contrast, a recorded model-fitting failure is a completed attempted fit and does not cause the dataset to be regenerated, the seed to be changed, or the fit to be repeatedly retried.
 
-Results are checkpointed by replication rather than only by scenario. A completion manifest records the successfully saved replication identifiers. This ensures that an interrupted run leaves the same number of completed replications in every core cell and remains directly evaluable.
+Results are checkpointed by replication rather than only by scenario. A completion manifest records the identifiers of replication objects that have been completely saved, irrespective of whether individual fits succeeded. This ensures that an interrupted run leaves the same number of attempted replications in every core cell and remains directly evaluable.
 
 Pilot and main-simulation seeds are stored separately. Scenario definitions, random-number generation, data generation, model fitting, performance evaluation, and result aggregation are implemented as separate functions.
 
@@ -1268,14 +1366,15 @@ Pilot and main-simulation seeds are stored separately. Scenario definitions, ran
 
 For every core combination of truth structure, structured-signal proportion, neighbourhood density, and noise level, the following are reported:
 
-- estimated MISE and its marginal MCSE for every method;
-- mean paired AISE improvement $\widehat{\Delta}_m$ and its paired MCSE;
+- estimated MISE and its marginal MCSE for every available method, with raw and pooled results labelled as diagnostic benchmarks;
+- mean paired AISE improvement $\widehat{\Delta}_m$ and its paired MCSE, with network-REML versus nodewise identified as the primary method comparison;
 - direct paired rook-versus-queen AISE difference $\widehat{\Delta}^{(\mathrm{density})}_{c}$ and its paired MCSE for each otherwise identical design cell;
 - direct paired rewired-versus-correct-rook AISE difference $\widehat{\Delta}^{(\mathrm{false})}_{d}$ and its paired MCSE for each false-graph control DGP;
 - aggregate rMISE relative to nodewise smoothing;
 - median and interquartile range of replication-specific RI;
 - mean, median, and selected quantiles of computation time;
 - numbers of successful, failed, warning-producing, and non-converged fits;
+- numbers of attempted and jointly successful replications for every paired comparison, with conditional-on-joint-success labels where the 5% failure threshold is exceeded;
 - log smoothing parameters, EDF, EDF-to-rank ratios, and diagnostic-flag rates.
 
 For cluster-structured cells, matched boundary DiD and its paired MCSE are additionally reported. Restricted oracle results and the two $N=100$ cells are presented in separate tables.
@@ -1309,10 +1408,11 @@ The core design choices are prespecified above. The following checks are complet
 3. verify that $\sigma=0.2$ and $\sigma=0.5$ produce meaningfully distinct overall and deviation SNR values;
 4. verify that the fixed rewired graph satisfies all structural requirements and $Q_d\geq1.5$ separately for both DGPs;
 5. determine the common core replication count using the paired-MCSE rule in Section 8.1;
-6. check the oracle-grid boundary-selection frequency and expand the grid if required;
-7. determine whether $B_{100}=100$ or $B_{100}=50$ using the prespecified timing rule;
-8. test with a toy example whether the `SpatFD` interface can predict a complete curve at an omitted node;
-9. decide whether optional clustering, `SpatFD`, and robustness analyses remain feasible after completing the required analyses.
+6. verify that the fit-failure rate of every fitted core method is at most 5% in every core cell; if not, pause and investigate before launching the main simulation;
+7. check the oracle-grid boundary-selection frequency and expand the grid if required;
+8. determine whether $B_{100}=100$ or $B_{100}=50$ using the prespecified timing rule;
+9. test with a toy example whether the `SpatFD` interface can predict a complete curve at an omitted node;
+10. decide whether optional clustering, `SpatFD`, and robustness analyses remain feasible after completing the required analyses.
 
 Every resulting choice, diagnostic value, seed, and final scenario table is saved before the main simulation is launched. The main simulation does not begin unless the known-answer check passes. If a pilot check changes the DGP or fitting procedure, the affected pilot checks, including the known-answer check when relevant, are repeated.
 
@@ -1346,11 +1446,14 @@ If further reductions are necessary, `SpatFD` is omitted first, followed by opti
 | Structured signal | $\alpha=0.5,0.9$ with fixed marginal coefficient variance |
 | Graph density | Rook and queen adjacency applied to the same truth and observations |
 | Noise level | $\sigma=0.2,0.5$, verified using overall and deviation SNR |
-| Core methods | Network-REML, nodewise smoothing, and pooled smoothing |
+| Primary comparison methods | Network-REML and nodewise smoothing |
+| Diagnostic benchmarks | Raw observations and pooled mean smoothing |
+| Fixed fitting settings | Cubic P-splines with first-order difference penalties; $K_{\mathrm{int}}=10$, $K_{\mathrm{dev}}=15$; Gaussian identity-link models; REML; common 50-point prediction grid |
 | Primary estimand | True node-specific functions $f_i(t)$ |
 | Primary measures | MISE and paired AISE improvement over nodewise smoothing with paired MCSE |
 | Secondary measures | Direct paired rook-versus-queen and rewired-versus-correct-rook AISE contrasts, rMISE, descriptive RI, matched boundary DiD, runtime, smoothing diagnostics, warnings and failures |
-| Core design | 16 factorial cells with a pilot-determined common $B\geq200$ |
+| Core design | 16 factorial cells with a pilot-determined common $B\geq200$ attempted replications; failed fits are recorded and never replaced |
+| Failure policy | Success requires no error, no reported non-convergence, and finite predictions; pilot failure threshold 5% per fitted core method and cell; paired MCSE uses the jointly successful count |
 | Known-answer check | Coordinate-smooth truth, $\alpha=1$, rook graph, $\sigma=0.5$, $N=25$, $T=50$, and $B_{\mathrm{sanity}}=50$, with three prespecified pass criteria |
 | Negative controls | $\alpha=0$ uninformative graph and fixed degree-preserving rewired graph with $Q_d\geq1.5$ for both DGPs |
 | Larger graph | Two fixed $N=100$ cells: best case and negative control |
