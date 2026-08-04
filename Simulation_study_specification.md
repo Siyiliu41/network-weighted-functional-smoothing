@@ -442,8 +442,8 @@ Both methods are fitted to the same simulated dataset within each replication. L
 
 $$
 \mathcal{S}^{(\mathrm{sanity})}=
-\left\{b:S_{b,\mathrm{network}}^{(\mathrm{sanity})}
-S_{b,\mathrm{nodewise}}^{(\mathrm{sanity})}=1\right\},
+\left\lbrace b:S_{b,\mathrm{network}}^{(\mathrm{sanity})}
+S_{b,\mathrm{nodewise}}^{(\mathrm{sanity})}=1\right\rbrace,
 \qquad
 n^{(\mathrm{sanity,pair})}=|\mathcal{S}^{(\mathrm{sanity})}|.
 $$
@@ -473,9 +473,9 @@ $$
 \widehat{\Delta}^{(\mathrm{sanity})}
 \right) =
 \frac{
-\mathrm{SD}\left\{
+\mathrm{SD}\left\lbrace
 \Delta^{(\mathrm{sanity})}_b:b\in\mathcal{S}^{(\mathrm{sanity})}
-\right\}
+\right\rbrace
 }{
 \sqrt{n^{(\mathrm{sanity,pair})}}
 }.
@@ -610,9 +610,9 @@ $$
 The planned replication count is
 
 $$
-B_{100}=\max\left\{
+B_{100}=\max\left\lbrace
 b\in\{100,50,25\}:T_{\mathrm{proj}}(b)\leq8\text{ hours}
-\right\}.
+\right\rbrace.
 $$
 
 Here $B_{100}$ denotes attempted replications in each cell. The rule is evaluated and fixed before any AISE or other reconstruction-performance result from the $N=100$ cells is inspected. If even $T_{\mathrm{proj}}(25)>8$ hours, the larger-graph block is declared computationally infeasible under the prespecified budget and is paused rather than run with an ad hoc smaller replication count.
@@ -954,7 +954,7 @@ For cell $c$, define the jointly successful set and count
 
 $$
 \mathcal{S}^{(\mathrm{pair})}_{c,m}=
-\left\{b:S_{bc,m}S_{bc,\mathrm{nodewise}}=1\right\},
+\left\lbrace b:S_{bc,m}S_{bc,\mathrm{nodewise}}=1\right\rbrace,
 \qquad
 n^{(\mathrm{pair})}_{c,m}=|\mathcal{S}^{(\mathrm{pair})}_{c,m}|.
 $$
@@ -972,7 +972,7 @@ Its Monte Carlo standard error is
 $$
 \mathrm{MCSE}\left(\widehat{\Delta}_{c,m}\right) =
 \frac{
-\mathrm{SD}\left\{\Delta_{bcm}:b\in\mathcal{S}^{(\mathrm{pair})}_{c,m}\right\}
+\mathrm{SD}\left\lbrace \Delta_{bcm}:b\in\mathcal{S}^{(\mathrm{pair})}_{c,m}\right\rbrace
 }{
 \sqrt{n^{(\mathrm{pair})}_{c,m}}
 }.
@@ -1022,7 +1022,7 @@ Let
 
 $$
 \mathcal{S}^{(\mathrm{density})}_c=
-\left\{b:S_{bc,\mathrm{rook}}S_{bc,\mathrm{queen}}=1\right\},
+\left\lbrace b:S_{bc,\mathrm{rook}}S_{bc,\mathrm{queen}}=1\right\rbrace,
 \qquad
 n^{(\mathrm{density,pair})}_c=|\mathcal{S}^{(\mathrm{density})}_c|.
 $$
@@ -1041,9 +1041,9 @@ Its paired Monte Carlo standard error is
 $$
 \mathrm{MCSE}\left(\widehat{\Delta}^{(\mathrm{density})}_{c}\right) =
 \frac{
-\mathrm{SD}\left\{
+\mathrm{SD}\left\lbrace
 \Delta^{(\mathrm{density})}_{bc}:b\in\mathcal{S}^{(\mathrm{density})}_c
-\right\}
+\right\rbrace
 }{
 \sqrt{n^{(\mathrm{density,pair})}_c}
 }.
@@ -1073,7 +1073,7 @@ Let
 
 $$
 \mathcal{S}^{(\mathrm{false})}_d=
-\left\{b:S_{bd,\mathrm{rewired}}S_{bd,\mathrm{rook}}=1\right\},
+\left\lbrace b:S_{bd,\mathrm{rewired}}S_{bd,\mathrm{rook}}=1\right\rbrace,
 \qquad
 n^{(\mathrm{false,pair})}_d=|\mathcal{S}^{(\mathrm{false})}_d|.
 $$
@@ -1092,9 +1092,9 @@ Its paired Monte Carlo standard error is
 $$
 \mathrm{MCSE}\left(\widehat{\Delta}^{(\mathrm{false})}_{d}\right) =
 \frac{
-\mathrm{SD}\left\{
+\mathrm{SD}\left\lbrace
 \Delta^{(\mathrm{false})}_{bd}:b\in\mathcal{S}^{(\mathrm{false})}_d
-\right\}
+\right\rbrace
 }{
 \sqrt{n^{(\mathrm{false,pair})}_d}
 }.
@@ -1144,7 +1144,7 @@ For each cluster cell $c$, let
 
 $$
 \mathcal{S}^{(\mathrm{boundary})}_{c,m}=
-\left\{b:S_{bc,m}S_{bc,\mathrm{nodewise}}=1\right\},
+\left\lbrace b:S_{bc,m}S_{bc,\mathrm{nodewise}}=1\right\rbrace,
 \qquad
 n^{(\mathrm{boundary,pair})}_{c,m}=
 |\mathcal{S}^{(\mathrm{boundary})}_{c,m}|.
@@ -1164,8 +1164,8 @@ Its Monte Carlo standard error is calculated from the replication-specific paire
 $$
 \mathrm{MCSE}\left(\widehat{\mathrm{DiD}}_{c,m}\right) =
 \frac{
-\mathrm{SD}\left\{\mathrm{DiD}_{bcm}:
-b\in\mathcal{S}^{(\mathrm{boundary})}_{c,m}\right\}
+\mathrm{SD}\left\lbrace \mathrm{DiD}_{bcm}:
+b\in\mathcal{S}^{(\mathrm{boundary})}_{c,m}\right\rbrace
 }{
 \sqrt{n^{(\mathrm{boundary,pair})}_{c,m}}
 }.
@@ -1197,9 +1197,9 @@ with jointly successful set
 
 $$
 \mathcal{S}_c^{(\mathrm{oracle})} =
-\left\{
+\left\lbrace
 b:S_{bc,\mathrm{REML}}S_{bc,\mathrm{oracle}}=1
-\right\}.
+\right\rbrace.
 $$
 
 The estimated mean oracle gap and its paired Monte Carlo standard error are
@@ -1215,7 +1215,7 @@ and
 $$
 \mathrm{MCSE}(\widehat{G}_c) =
 \frac{
-\mathrm{SD}\left\{G_{bc}:b\in\mathcal{S}_c^{(\mathrm{oracle})}\right\}
+\mathrm{SD}\left\lbrace G_{bc}:b\in\mathcal{S}_c^{(\mathrm{oracle})}\right\rbrace
 }{
 \sqrt{n_c^{(\mathrm{oracle,pair})}}
 }.
@@ -1241,7 +1241,7 @@ For the estimated MISE of method $m$ in cell $c$, the marginal MCSE is
 $$
 \mathrm{MCSE}\left(\widehat{\mathrm{MISE}}_{cm}\right) =
 \frac{
-\mathrm{SD}\left\{\mathrm{AISE}_{bcm}:b\in\mathcal{S}_{cm}\right\}
+\mathrm{SD}\left\lbrace \mathrm{AISE}_{bcm}:b\in\mathcal{S}_{cm}\right\rbrace
 }{
 \sqrt{n_{cm}}
 }.
@@ -1437,11 +1437,11 @@ $$
 $$
 \mathrm{MCSE}\left(\widehat{\Delta}^{(\mathrm{ARI})}_c\right)=
 \frac{
-\mathrm{SD}\left\{
+\mathrm{SD}\left\lbrace
 \mathrm{ARI}_{bc,\mathrm{network}}-
 \mathrm{ARI}_{bc,\mathrm{nodewise}}:
 b\in\mathcal S^{(\mathrm{ARI})}_c
-\right\}
+\right\rbrace
 }{
 \sqrt{n^{(\mathrm{ARI,pair})}_c}
 }.
