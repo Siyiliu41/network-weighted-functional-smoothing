@@ -928,10 +928,10 @@ This is the primary absolute performance measure.
 Individual-node reconstruction is summarised within each successful replication by
 
 $$
-\mathrm{MedISE}_{bcm}=\operatorname{median}_{i=1,\ldots,N}
+\mathrm{MedISE}_{bcm}=\mathrm{median}_{i=1,\ldots,N}
 \mathrm{ISE}_{ibcm},
 \qquad
-\mathrm{WorstISE}_{bcm}=\max_{i=1,\ldots,N}\mathrm{ISE}_{ibcm}.
+\mathrm{WorstISE}_{bcm}=\mathrm{max}_{i=1,\ldots,N}\mathrm{ISE}_{ibcm}.
 $$
 
 For each method and cell, the Monte Carlo mean and median of both quantities are reported over $\mathcal{S}_{cm}$. These are descriptive secondary measures and do not determine $B$.
@@ -1542,7 +1542,7 @@ Pilot replications are not included in the final performance estimates. If the D
 Scenario identifiers are generated from a frozen scenario table and have the canonical form
 
 ```text
-<block>__n<N>__<truth>__a<alpha>__<graph>__s<sigma>
+{block}__n{N}__{truth}__a{alpha}__{graph}__s{sigma}
 ```
 
 with decimal points encoded as `p`, for example `core__n25__coordinate__a0p9__rook__s0p5`. Replication identifiers are positive integers within a simulation phase. The pair `(phase, replication_id)` identifies a random-number stream. Each attempted fit has a unique `fit_id`: it equals the method ID for M0, M1, M3, and M4, and includes the two candidate offsets for an M2 candidate. The tuple `(phase, scenario_id, replication_id, fit_id)` is the primary key of a fit-result record.
@@ -1612,7 +1612,7 @@ The reporting contract is fixed as follows:
 | Scalability | Runtime, fit diagnostics, MISE, and paired improvement | Separate $N=100$ table |
 | Cluster preservation | Truth-reference and method-specific ARI summaries | One supplementary table or figure |
 
-A separate DGP-validation table is produced before estimator-performance summaries are inspected. For every distinct generated truth configuration it records $\mathrm{SNR}_{\mathrm{overall}}$, $\mathrm{SNR}_{\mathrm{dev}}$, and $\mathrm{RPE}_{\mathrm{dev}}$; for every fitted graph it records $R^{\mathrm{MRF}}_{k,G}$ and $R^{\mathrm{norm}}_{k,G}$ for $k=1,2,3$. For the retained rewired graph it additionally records the adjacency-list hash, edge-overlap proportion, $E_{d,G}$, and $Q_d$ for both DGPs. Values that are identical because a truth or dataset is reused are stored once and linked by scenario identifier rather than duplicated as independent observations.
+A separate DGP-validation table is produced before estimator-performance summaries are inspected. For every distinct generated truth configuration it records `SNR_overall`, `SNR_dev`, and `RPE_dev`; for every fitted graph it records `R_MRF[k,G]` and `R_norm[k,G]` for $k=1,2,3$. For the retained rewired graph it additionally records the adjacency-list hash, edge-overlap proportion, `E_d,G`, and `Q_d` for both DGPs. Values that are identical because a truth or dataset is reused are stored once and linked by scenario identifier rather than duplicated as independent observations.
 
 ### 9.2 Main performance tables
 
@@ -1667,12 +1667,9 @@ The core design choices are prespecified above. The following checks are complet
 7. verify that the fixed-parameter candidate with offsets $(0,0)$ reproduces the original REML prediction to numerical tolerance,
 
    $$
-   \max_{i,j}
-   \left|
-   \widehat f_i^{(0,0)}(t_j) -
-   \widehat f_i^{(\mathrm{REML})}(t_j)
-   \right|
-   <10^{-8};
+   \mathrm{max}_{i,j}\,\lvert
+   \widehat f_i^{(0,0)}(t_j)-\widehat f_i^{(\mathrm{REML})}(t_j)
+   \rvert < 10^{-8};
    $$
 
    if this check fails, stop and inspect smoothing-parameter extraction, ordering, and fixed-parameter refitting before conducting the oracle analysis;
