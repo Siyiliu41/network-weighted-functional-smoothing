@@ -1210,7 +1210,9 @@ $$
 \sum_{b\in\mathcal{S}_c^{(\mathrm{oracle})}}G_{bc},
 $$
 
-and
+This paired MCSE is the primary Monte Carlo uncertainty measure for the network-versus-nodewise comparison.
+
+At the aggregate level, the MISE ratio is
 
 $$
 \mathrm{MCSE}(\widehat{G}_c) =
