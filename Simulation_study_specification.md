@@ -2,7 +2,7 @@
 
 ## Specification According to the ADEMP Framework
 
-**Status:** Prespecified before conducting and inspecting the main simulation results
+**Status:** Frozen prespecification before conducting and inspecting the main simulation results; pilot-dependent quantities are fixed only by the rules in Sections 8 and 10
 **Framework:** ADEMP framework proposed by Morris, White, and Crowther (2019)
 
 ## 1. Overview
@@ -50,6 +50,7 @@ The simulation study additionally addresses the following questions:
 7. Do the reconstructed curves preserve the prespecified cluster structure, and how does clustering agreement differ across smoothing methods?
 8. How frequently do numerical warnings, convergence problems, or failed fits occur?
 9. What is the reconstruction cost of supplying an actively misleading graph rather than the correct graph?
+10. How do computation time, numerical stability, and descriptive reconstruction accuracy change in two prespecified $N=100$ scalability cells?
 
 The effect of neighbourhood density is evaluated primarily through the direct paired rook-versus-queen difference in AISE within otherwise identical design cells.
 
@@ -132,7 +133,7 @@ $$
 \varepsilon_{ij} \overset{\mathrm{iid}}{\sim} N(0,\sigma^2).
 $$
 
-Gaussian and temporally independent errors provide a deliberately simple reference setting. Temporally correlated or heteroscedastic errors may subsequently be considered in robustness analyses.
+Gaussian and temporally independent errors provide a deliberately simple reference setting. Extensions to other error structures are outside the formal simulation and are listed in Section 13.
 
 ### 3.4 True node-specific curves
 
@@ -142,7 +143,13 @@ $$
 f_i(t)=\mu(t)+\delta_i(t),
 $$
 
-where $\mu(t)$ is a common smooth mean function and $\delta_i(t)$ is a node-specific deviation.
+where the common smooth mean function is fixed as
+
+$$
+\mu(t)=1+0.5\sin(2\pi t)+0.25\cos(4\pi t),
+$$
+
+and $\delta_i(t)$ is a node-specific deviation. This same $\mu(t)$ is used in every DGP, graph size, and replication.
 
 For identifiability, the deviations are centred across nodes for every $t$:
 
@@ -156,7 +163,7 @@ $$
 \delta_i(t) = \sum_{k=1}^{K}\theta_{ik}\phi_k(t).
 $$
 
-The core simulation uses $K=3$, for example:
+The core simulation fixes $K=3$ and uses exactly
 
 $$
 \phi_1(t)=\sin(2\pi t),
@@ -397,8 +404,6 @@ The pilot verifies that the two core noise levels produce meaningfully different
 
 The core design contains one noisy curve per node. Under independent errors on a common observation grid, averaging $n_i$ replicate curves at node $i$ is equivalent to observing one curve with noise standard deviation $\sigma/\sqrt{n_i}$. Therefore, the number of replicate curves per node is not varied as a separate factor. This equivalence, and its dependence on the independent common-grid error assumption, is stated as a limitation.
 
-An additional $\sigma=0.1$ high-information stage is optional and is not part of the 16-cell core design.
-
 ### 3.8 Core simulation scenarios
 
 The core factorial design combines the following factors:
@@ -433,7 +438,17 @@ Before the main simulation is launched, a separate known-answer sanity check is 
 | Replications | $B_{\mathrm{sanity}}=50$ |
 | Primary comparison | Network-REML versus nodewise smoothing |
 
-Both methods are fitted to the same simulated dataset within each replication. Define the replication-specific sanity-check improvement as
+Both methods are fitted to the same simulated dataset within each replication. Let $S_{b,\mathrm{network}}^{(\mathrm{sanity})}$ and $S_{b,\mathrm{nodewise}}^{(\mathrm{sanity})}$ be their success indicators, and define
+
+$$
+\mathcal{S}^{(\mathrm{sanity})}=
+\left\{b:S_{b,\mathrm{network}}^{(\mathrm{sanity})}
+S_{b,\mathrm{nodewise}}^{(\mathrm{sanity})}=1\right\},
+\qquad
+n^{(\mathrm{sanity,pair})}=|\mathcal{S}^{(\mathrm{sanity})}|.
+$$
+
+For $b\in\mathcal{S}^{(\mathrm{sanity})}$, define the replication-specific sanity-check improvement as
 
 $$
 \Delta^{(\mathrm{sanity})}_b =
@@ -445,8 +460,8 @@ Its estimated mean and paired Monte Carlo standard error are
 
 $$
 \widehat{\Delta}^{(\mathrm{sanity})} =
-\frac{1}{B_{\mathrm{sanity}}}
-\sum_{b=1}^{B_{\mathrm{sanity}}}
+\frac{1}{n^{(\mathrm{sanity,pair})}}
+\sum_{b\in\mathcal{S}^{(\mathrm{sanity})}}
 \Delta^{(\mathrm{sanity})}_b,
 $$
 
@@ -458,13 +473,11 @@ $$
 \widehat{\Delta}^{(\mathrm{sanity})}
 \right) =
 \frac{
-\mathrm{SD}
-\left(
-\Delta^{(\mathrm{sanity})}_1,\ldots,
-\Delta^{(\mathrm{sanity})}_{B_{\mathrm{sanity}}}
-\right)
+\mathrm{SD}\left\{
+\Delta^{(\mathrm{sanity})}_b:b\in\mathcal{S}^{(\mathrm{sanity})}
+\right\}
 }{
-\sqrt{B_{\mathrm{sanity}}}
+\sqrt{n^{(\mathrm{sanity,pair})}}
 }.
 $$
 
@@ -486,8 +499,8 @@ $$
 and
 
 $$
-\frac{1}{B_{\mathrm{sanity}}}
-\sum_{b=1}^{B_{\mathrm{sanity}}}
+\frac{1}{n^{(\mathrm{sanity,pair})}}
+\sum_{b\in\mathcal{S}^{(\mathrm{sanity})}}
 \mathbf{1}
 \left(
 \Delta^{(\mathrm{sanity})}_b>0
@@ -495,7 +508,7 @@ $$
 \geq0.80.
 $$
 
-These criteria require a positive average improvement, an improvement that is clear relative to Monte Carlo uncertainty, and improvement in at least 80% of replications. The check is diagnostic and is not included in the 16-cell core design or in the final core performance estimates.
+These criteria require a positive average improvement, an improvement that is clear relative to Monte Carlo uncertainty, and improvement in at least 80% of jointly successful replications. The attempted count, both method-specific success counts, and the jointly successful count are reported. If either method fails in more than 5% of the 50 attempted replications, the check is not passed even if the three performance criteria hold. The check is diagnostic and is not included in the 16-cell core design or in the final core performance estimates.
 
 If the check fails, the main simulation is paused. Graph-to-node alignment, truth generation, basis representation, penalty construction, smoothing-parameter extraction, prediction, and performance-measure implementation are then inspected. The DGP and pass criteria are not tuned in response to the observed sanity-check performance. Any implementation correction is documented, and the sanity check is rerun with a new prespecified seed set before the main simulation starts.
 
@@ -505,7 +518,7 @@ This formal $T=50$ check is distinct from the existing $T=30$ software smoke tes
 
 Two distinct negative controls are included because an uninformative graph and a false graph represent different failure modes.
 
-**Uninformative graph control.** The setting $\alpha=0$ removes the structured coefficient component. It is evaluated for the coordinate-based DGP at $\sigma=0.5$ using both rook and queen estimator graphs. These two cells test whether graph regularisation is harmful when the supplied graph contains no systematic information about curve similarity.
+**Uninformative graph control.** The setting $\alpha=0$ removes the structured coefficient component. It is evaluated for the coordinate-based DGP at $\sigma=0.5$ using both rook and queen estimator graphs. These two cells test whether graph regularisation is harmful when the supplied graph contains no systematic information about curve similarity. Each cell uses the same $B$ prespecified attempted replication identifiers as the core simulation; failures are not replaced.
 
 **False graph control.** A fixed rewired graph is constructed from the rook graph using degree-preserving double-edge swaps. The rewired graph must:
 
@@ -516,7 +529,7 @@ Two distinct negative controls are included because an uninformative graph and a
 
 The rewiring seed and final adjacency list are fixed and saved before the main simulation. The same true curves, observation errors, and method settings are used for the correct-rook and rewired-graph fits.
 
-The false-graph control is evaluated at $\alpha=0.9$ and $\sigma=0.5$ for both the coordinate-smooth and cluster-structured DGPs. The corresponding correct-rook cells are already part of the core factorial design, so only the additional rewired network fits are required.
+The false-graph control is evaluated at $\alpha=0.9$ and $\sigma=0.5$ for both the coordinate-smooth and cluster-structured DGPs. Each uses the same $B$ attempted replication identifiers as its corresponding core cell. The correct-rook fits are already part of the core factorial design, so only the additional rewired network fits are required; failures are not replaced.
 
 To quantify whether the rewired graph is actively incompatible with the truth, define the purely structured deviation curve for DGP $d$ as
 
@@ -559,7 +572,7 @@ separately for both the coordinate-smooth and cluster-structured DGPs. Rewiring 
 
 The $\alpha=0$ control therefore represents useless graph information, whereas the rewired control represents actively misleading graph information.
 
-### 3.9 Fixed larger-graph scalability cells and optional robustness analyses
+### 3.9 Fixed larger-graph scalability cells
 
 Node count is examined using a $10\times10$ lattice with
 
@@ -587,7 +600,7 @@ The high-structure cell is a matched scalability analogue of the corresponding $
 
 Before the main larger-graph runs, five timing replications are performed separately for each cell using prespecified timing seeds that are independent of the pilot and main-simulation seeds. These timing datasets are not included in the final performance summaries, and none is selectively removed because of an unusually short or long runtime.
 
-Let $\widetilde{t}_{100,1}$ and $\widetilde{t}_{100,2}$ denote the median elapsed times for one complete replication of the high-structure and negative-control cells, respectively. A complete replication includes data generation, network and nodewise fitting, prediction, metric calculation, and result saving. The projected serial runtime for attempting $b$ replications in each cell is
+Let $\widetilde{t}_{100,1}$ and $\widetilde{t}_{100,2}$ denote the median elapsed times for one complete replication of the high-structure and negative-control cells, respectively. A complete replication includes data generation, M1 network and M3 nodewise fitting, prediction, metric calculation, and result saving. M0 raw and M4 pooled are neither fitted nor reported in the $N=100$ block. The projected serial runtime for attempting $b$ replications in each cell is
 
 $$
 T_{\mathrm{proj}}(b)=
@@ -607,8 +620,6 @@ Here $B_{100}$ denotes attempted replications in each cell. The rule is evaluate
 Failed fits are saved and never replaced by new seeds. Network-versus-nodewise summaries use the realised jointly successful count for their paired means and MCSEs. For each cell, MISE and its marginal MCSE, paired AISE improvement and its paired MCSE, success and failure rates, elapsed time, log smoothing parameters, and EDF are reported. If either fitted method has a failure rate above 5%, reconstruction summaries are explicitly labelled as conditional on fitting success and the failure pattern is reported separately.
 
 The two $N=100$ cells are prioritised ahead of the oracle diagnostics because node count is a distinct sample-size dimension.
-
-Temporally correlated errors and additional graph perturbations are optional robustness analyses and are conducted only after completion of the core design, negative controls, and the two fixed $N=100$ cells.
 
 ### 3.10 Basis dimensions and projection check
 
@@ -664,7 +675,8 @@ Secondary estimands include:
 - reconstruction accuracy at cluster boundaries;
 - reconstruction accuracy at interior cluster nodes;
 - the true cluster structure in the block-structured DGP;
-- the reconstruction error attainable under an optimal choice of smoothing parameters.
+- the reconstruction error attained by the prespecified restricted coarse-to-fine oracle, conditional on the fixed basis representation and REML-selected functional-intercept smoothing parameter;
+- computation time, numerical stability, and descriptive reconstruction accuracy in the two fixed $N=100$ scalability cells.
 
 ### 4.3 Distinction from spatial prediction
 
@@ -774,7 +786,7 @@ $$
 
 to the two log-scale offsets of the coarse winner. Duplicate candidates already evaluated in the coarse stage are not refitted. With the initial coarse grid, at most 33 distinct parameter pairs are therefore evaluated per dataset. The final oracle candidate is the candidate with the smallest true node-averaged ISE among all successfully evaluated coarse and refinement candidates.
 
-During the pilot, lower- and upper-edge selection frequencies of the **coarse-stage winner** are recorded separately for the graph and time directions. If a boundary is selected in more than 5% of oracle pilot searches, the coarse grid is expanded only in that direction and on that side by one additional offset spaced two log units from the current boundary. The check is repeated after each expansion. No coarse-grid boundary may be extended beyond the prespecified offset range $[-8,8]$. If the corresponding boundary-selection frequency remains above 5% at this maximum range, the search is labelled `range-inadequate`; the range is not enlarged further in response to oracle performance results.
+During the pilot, the oracle search is attempted on the first 50 prespecified pilot replication identifiers in each of the four oracle cells. These 50 attempted searches are not replaced after failure and do not enter the final oracle summaries. Lower- and upper-edge selection frequencies of the **coarse-stage winner** are calculated among complete successful pilot searches and recorded separately for the graph and time directions, together with the attempted and successful counts. If a boundary is selected in more than 5% of successful oracle pilot searches, the coarse grid is expanded only in that direction and on that side by one additional offset spaced two log units from the current boundary. The same 50 pilot identifiers are rerun on the expanded grid and the check is repeated after each expansion. No coarse-grid boundary may be extended beyond the prespecified offset range $[-8,8]$. If the corresponding boundary-selection frequency remains above 5% at this maximum range, the search is labelled `range-inadequate`; the range is not enlarged further in response to oracle performance results.
 
 The final coarse grid and all boundary-check results are fixed and documented before the main oracle analysis. Local-refinement offsets are clipped to the final $[-8,8]$ search range. A main-simulation selection on the minimum or maximum permitted offset is retained as a boundary diagnostic and does not trigger further expansion.
 
@@ -863,72 +875,123 @@ This method represents complete pooling. It may have low variance but cannot rep
 
 ### 6.1 Node-specific integrated squared error
 
-For node $i$, method $m$, and simulation replication $b$, the integrated squared error is
+For node $i$, method $m$, simulation replication $b$, and cell $c$, the integrated squared error is
 
 $$
-\mathrm{ISE}_{ibm} = \int_0^1 \left[ \widehat f_{ibm}(t)-f_{ib}(t) \right]^2dt.
+\mathrm{ISE}_{ibcm} = \int_0^1 \left[ \widehat f_{ibcm}(t)-f_{ibc}(t) \right]^2dt.
 $$
 
-On the discrete observation grid, the integral is approximated numerically, preferably using the trapezoidal rule.
+On the equally spaced observation and evaluation grid, the integral is approximated using the fixed trapezoidal weights
+
+$$
+w_1=w_T=\frac{1}{2(T-1)},
+\qquad
+w_j=\frac{1}{T-1},\quad j=2,\ldots,T-1,
+$$
+
+so that
+
+$$
+\mathrm{ISE}_{ibcm}=
+\sum_{j=1}^{T}w_j
+\left[\widehat f_{ibcm}(t_j)-f_{ibc}(t_j)\right]^2.
+$$
+
+The same weights are used in every numerical integral and in the clustering features in Section 7.
 
 ### 6.2 Node-averaged ISE
 
 Within each simulation replication, the ISE is averaged across nodes:
 
 $$
-\mathrm{AISE}_{bm} = \frac{1}{N} \sum_{i=1}^{N} \mathrm{ISE}_{ibm}.
+\mathrm{AISE}_{bcm} = \frac{1}{N} \sum_{i=1}^{N} \mathrm{ISE}_{ibcm}.
 $$
 
-Across $B$ simulation replications, the estimated mean integrated squared error is
+Let
 
 $$
-\widehat{\mathrm{MISE}}_m = \frac{1}{B} \sum_{b=1}^{B} \mathrm{AISE}_{bm}.
+\mathcal{S}_{cm}=\{b:S_{bcm}=1\},
+\qquad
+n_{cm}=|\mathcal{S}_{cm}|
+$$
+
+denote the successful replication set and count for method $m$ in cell $c$. The estimated mean integrated squared error is
+
+$$
+\widehat{\mathrm{MISE}}_{cm} =
+\frac{1}{n_{cm}}
+\sum_{b\in\mathcal{S}_{cm}}\mathrm{AISE}_{bcm}.
 $$
 
 This is the primary absolute performance measure.
+
+Individual-node reconstruction is summarised within each successful replication by
+
+$$
+\mathrm{MedISE}_{bcm}=\operatorname{median}_{i=1,\ldots,N}
+\mathrm{ISE}_{ibcm},
+\qquad
+\mathrm{WorstISE}_{bcm}=\max_{i=1,\ldots,N}\mathrm{ISE}_{ibcm}.
+$$
+
+For each method and cell, the Monte Carlo mean and median of both quantities are reported over $\mathcal{S}_{cm}$. These are descriptive secondary measures and do not determine $B$.
 
 ### 6.3 Primary paired comparison and relative measures
 
 Because every method is fitted to the same simulated dataset within replication $b$, the primary comparison with nodewise smoothing is paired.
 
-For method $m$, define the replication-specific AISE improvement
+For method $m$ in cell $c$, define the replication-specific AISE improvement
 
 $$
-\Delta_{bm} =
-\mathrm{AISE}_{b,\mathrm{nodewise}} -
-\mathrm{AISE}_{bm}.
+\Delta_{bcm} =
+\mathrm{AISE}_{bc,\mathrm{nodewise}} -
+\mathrm{AISE}_{bcm}.
 $$
 
-Thus, $\Delta_{bm}>0$ indicates that method $m$ has a lower node-averaged reconstruction error than nodewise smoothing.
+Thus, $\Delta_{bcm}>0$ indicates that method $m$ has a lower node-averaged reconstruction error than nodewise smoothing.
+
+For cell $c$, define the jointly successful set and count
+
+$$
+\mathcal{S}^{(\mathrm{pair})}_{c,m}=
+\left\{b:S_{bc,m}S_{bc,\mathrm{nodewise}}=1\right\},
+\qquad
+n^{(\mathrm{pair})}_{c,m}=|\mathcal{S}^{(\mathrm{pair})}_{c,m}|.
+$$
 
 The estimated mean paired improvement is
 
 $$
-\widehat{\Delta}_m =
-\frac{1}{B}\sum_{b=1}^{B}\Delta_{bm}.
+\widehat{\Delta}_{c,m} =
+\frac{1}{n^{(\mathrm{pair})}_{c,m}}
+\sum_{b\in\mathcal{S}^{(\mathrm{pair})}_{c,m}}\Delta_{bcm}.
 $$
 
 Its Monte Carlo standard error is
 
 $$
-\mathrm{MCSE}\left(\widehat{\Delta}_m\right) =
+\mathrm{MCSE}\left(\widehat{\Delta}_{c,m}\right) =
 \frac{
-\mathrm{SD}\left(\Delta_{1m},\ldots,\Delta_{Bm}\right)
+\mathrm{SD}\left\{\Delta_{bcm}:b\in\mathcal{S}^{(\mathrm{pair})}_{c,m}\right\}
 }{
-\sqrt{B}
+\sqrt{n^{(\mathrm{pair})}_{c,m}}
 }.
 $$
 
 This paired MCSE is the primary Monte Carlo uncertainty measure for the network-versus-nodewise comparison.
 
-At the aggregate level, the MISE ratio is
+For a failure-consistent aggregate relative measure, both numerator and denominator are calculated on the same jointly successful set:
 
 $$
-\mathrm{rMISE}_m =
+\mathrm{rMISE}_{c,m} =
 \frac{
-\widehat{\mathrm{MISE}}_m
+\displaystyle
+\sum_{b\in\mathcal{S}^{(\mathrm{pair})}_{c,m}}
+\mathrm{AISE}_{bc,m}
 }{
-\widehat{\mathrm{MISE}}_{\mathrm{nodewise}}
+\displaystyle
+\sum_{b\in\mathcal{S}^{(\mathrm{pair})}_{c,m}}
+\mathrm{AISE}_{bc,\mathrm{nodewise}}
 }.
 $$
 
@@ -937,11 +1000,11 @@ Values below 1 favour method $m$.
 For descriptive replication-level summaries, relative improvement is defined as
 
 $$
-\mathrm{RI}_{bm} =
-100\frac{\Delta_{bm}}{\mathrm{AISE}_{b,\mathrm{nodewise}}}.
+\mathrm{RI}_{bcm} =
+100\frac{\Delta_{bcm}}{\mathrm{AISE}_{bc,\mathrm{nodewise}}}.
 $$
 
-Because this measure contains a random denominator and may produce extreme ratios, it is summarised using the median, interquartile range, and boxplots. It is not used as the primary inferential comparison and is not averaged to determine the number of replications.
+Because this measure contains a random denominator and may produce extreme ratios, it is calculated only for $b\in\mathcal{S}^{(\mathrm{pair})}_{c,m}$ and summarised using the median, interquartile range, and boxplots. It is not used as the primary inferential comparison and is not averaged to determine the number of replications.
 
 ### 6.4 Direct paired contrast for neighbourhood density
 
@@ -955,12 +1018,21 @@ $$
 \mathrm{AISE}_{bc,\mathrm{queen}}.
 $$
 
+Let
+
+$$
+\mathcal{S}^{(\mathrm{density})}_c=
+\left\{b:S_{bc,\mathrm{rook}}S_{bc,\mathrm{queen}}=1\right\},
+\qquad
+n^{(\mathrm{density,pair})}_c=|\mathcal{S}^{(\mathrm{density})}_c|.
+$$
+
 The cell-specific mean density effect is estimated by
 
 $$
 \widehat{\Delta}^{(\mathrm{density})}_{c} =
-\frac{1}{B_c}
-\sum_{b=1}^{B_c}
+\frac{1}{n^{(\mathrm{density,pair})}_c}
+\sum_{b\in\mathcal{S}^{(\mathrm{density})}_c}
 \Delta^{(\mathrm{density})}_{bc}.
 $$
 
@@ -969,11 +1041,11 @@ Its paired Monte Carlo standard error is
 $$
 \mathrm{MCSE}\left(\widehat{\Delta}^{(\mathrm{density})}_{c}\right) =
 \frac{
-\mathrm{SD}\left(
-\Delta^{(\mathrm{density})}_{bc}: b=1,\ldots,B_c
-\right)
+\mathrm{SD}\left\{
+\Delta^{(\mathrm{density})}_{bc}:b\in\mathcal{S}^{(\mathrm{density})}_c
+\right\}
 }{
-\sqrt{B_c}
+\sqrt{n^{(\mathrm{density,pair})}_c}
 }.
 $$
 
@@ -997,12 +1069,21 @@ $$
 \mathrm{AISE}_{bd,\mathrm{rook}}.
 $$
 
+Let
+
+$$
+\mathcal{S}^{(\mathrm{false})}_d=
+\left\{b:S_{bd,\mathrm{rewired}}S_{bd,\mathrm{rook}}=1\right\},
+\qquad
+n^{(\mathrm{false,pair})}_d=|\mathcal{S}^{(\mathrm{false})}_d|.
+$$
+
 The DGP-specific mean cost of graph misspecification is estimated by
 
 $$
 \widehat{\Delta}^{(\mathrm{false})}_{d} =
-\frac{1}{B_d}
-\sum_{b=1}^{B_d}
+\frac{1}{n^{(\mathrm{false,pair})}_d}
+\sum_{b\in\mathcal{S}^{(\mathrm{false})}_d}
 \Delta^{(\mathrm{false})}_{bd}.
 $$
 
@@ -1011,11 +1092,11 @@ Its paired Monte Carlo standard error is
 $$
 \mathrm{MCSE}\left(\widehat{\Delta}^{(\mathrm{false})}_{d}\right) =
 \frac{
-\mathrm{SD}\left(
-\Delta^{(\mathrm{false})}_{bd}: b=1,\ldots,B_d
-\right)
+\mathrm{SD}\left\{
+\Delta^{(\mathrm{false})}_{bd}:b\in\mathcal{S}^{(\mathrm{false})}_d
+\right\}
 }{
-\sqrt{B_d}
+\sqrt{n^{(\mathrm{false,pair})}_d}
 }.
 $$
 
@@ -1031,49 +1112,62 @@ The contrast is reported separately for the coordinate-smooth and cluster-struct
 
 For the cluster-structured DGP, the primary boundary analysis compares the matched boundary and interior sets $\mathcal{B}_{\mathrm{matched}}$ and $\mathcal{I}_{\mathrm{matched}}$ defined in Section 3.6.
 
-For node $i$, replication $b$, and method $m$, first define the ISE difference relative to nodewise smoothing:
+For node $i$, replication $b$, cluster cell $c$, and method $m$, first define the ISE difference relative to nodewise smoothing:
 
 $$
-d_{ibm} =
-\mathrm{ISE}_{ibm} -
-\mathrm{ISE}_{ib,\mathrm{nodewise}}.
+d_{ibcm} =
+\mathrm{ISE}_{ibcm} -
+\mathrm{ISE}_{ibc,\mathrm{nodewise}}.
 $$
 
-Positive values of $d_{ibm}$ indicate that method $m$ has a larger reconstruction error than nodewise smoothing at node $i$.
+Positive values of $d_{ibcm}$ indicate that method $m$ has a larger reconstruction error than nodewise smoothing at node $i$.
 
 The replication-specific matched boundary effect is
 
 $$
-\mathrm{DiD}_{bm} =
+\mathrm{DiD}_{bcm} =
 \frac{1}{|\mathcal{B}_{\mathrm{matched}}|}
-\sum_{i\in\mathcal{B}_{\mathrm{matched}}}d_{ibm} -
+\sum_{i\in\mathcal{B}_{\mathrm{matched}}}d_{ibcm} -
 \frac{1}{|\mathcal{I}_{\mathrm{matched}}|}
-\sum_{i\in\mathcal{I}_{\mathrm{matched}}}d_{ibm}.
+\sum_{i\in\mathcal{I}_{\mathrm{matched}}}d_{ibcm}.
 $$
 
 In the core $5\times5$ cluster DGP, $|\mathcal{B}_{\mathrm{matched}}|=|\mathcal{I}_{\mathrm{matched}}|=5$, and boundary and interior nodes are matched by lattice row.
 
 The interpretation is:
 
-- $\mathrm{DiD}_{bm}>0$: method $m$ incurs additional reconstruction error near the true cluster boundary, relative to both matched interior nodes and nodewise smoothing;
-- $\mathrm{DiD}_{bm}=0$: there is no additional boundary-specific loss relative to nodewise smoothing;
-- $\mathrm{DiD}_{bm}<0$: method $m$ performs relatively better at the boundary than at the matched interior nodes.
+- $\mathrm{DiD}_{bcm}>0$: method $m$ incurs additional reconstruction error near the true cluster boundary, relative to both matched interior nodes and nodewise smoothing;
+- $\mathrm{DiD}_{bcm}=0$: there is no additional boundary-specific loss relative to nodewise smoothing;
+- $\mathrm{DiD}_{bcm}<0$: method $m$ performs relatively better at the boundary than at the matched interior nodes.
 
-Across replications, the estimated mean boundary effect is
+For each cluster cell $c$, let
 
 $$
-\widehat{\mathrm{DiD}}_m =
-\frac{1}{B}\sum_{b=1}^{B}\mathrm{DiD}_{bm}.
+\mathcal{S}^{(\mathrm{boundary})}_{c,m}=
+\left\{b:S_{bc,m}S_{bc,\mathrm{nodewise}}=1\right\},
+\qquad
+n^{(\mathrm{boundary,pair})}_{c,m}=
+|\mathcal{S}^{(\mathrm{boundary})}_{c,m}|.
+$$
+
+Across jointly successful replications, the estimated mean boundary effect is
+
+$$
+\widehat{\mathrm{DiD}}_{c,m} =
+\frac{1}{n^{(\mathrm{boundary,pair})}_{c,m}}
+\sum_{b\in\mathcal{S}^{(\mathrm{boundary})}_{c,m}}
+\mathrm{DiD}_{bcm}.
 $$
 
 Its Monte Carlo standard error is calculated from the replication-specific paired effects:
 
 $$
-\mathrm{MCSE}\left(\widehat{\mathrm{DiD}}_m\right) =
+\mathrm{MCSE}\left(\widehat{\mathrm{DiD}}_{c,m}\right) =
 \frac{
-\mathrm{SD}\left(\mathrm{DiD}_{1m},\ldots,\mathrm{DiD}_{Bm}\right)
+\mathrm{SD}\left\{\mathrm{DiD}_{bcm}:
+b\in\mathcal{S}^{(\mathrm{boundary})}_{c,m}\right\}
 }{
-\sqrt{B}
+\sqrt{n^{(\mathrm{boundary,pair})}_{c,m}}
 }.
 $$
 
@@ -1142,18 +1236,18 @@ Oracle-search success counts, candidate-failure frequencies, coarse- and final-b
 
 Monte Carlo standard errors are reported together with all estimated performance summaries using a formula appropriate to the corresponding statistic.
 
-For the estimated MISE of method $m$, the marginal MCSE is
+For the estimated MISE of method $m$ in cell $c$, the marginal MCSE is
 
 $$
-\mathrm{MCSE}\left(\widehat{\mathrm{MISE}}_m\right) =
+\mathrm{MCSE}\left(\widehat{\mathrm{MISE}}_{cm}\right) =
 \frac{
-\mathrm{SD}\left(\mathrm{AISE}_{1m},\ldots,\mathrm{AISE}_{Bm}\right)
+\mathrm{SD}\left\{\mathrm{AISE}_{bcm}:b\in\mathcal{S}_{cm}\right\}
 }{
-\sqrt{B}
+\sqrt{n_{cm}}
 }.
 $$
 
-For the primary network-versus-nodewise comparison, uncertainty is instead calculated from the paired differences $\Delta_{bm}$, as defined in Section 6.3. The two marginal MCSEs are not combined because this would ignore the within-replication correlation between methods.
+For the primary network-versus-nodewise comparison, uncertainty is instead calculated from the paired differences $\Delta_{bcm}$, as defined in Section 6.3. The two marginal MCSEs are not combined because this would ignore the within-replication correlation between methods.
 
 The final number of simulation replications is determined from a prespecified MCSE target using the pilot estimate of the standard deviation of the paired differences. The exact rule is defined in Section 8.1.
 
@@ -1220,17 +1314,17 @@ The analysis reports mean, median, and selected quantiles of computation time, l
 
 Failed fits are not silently removed. Performance measures are reported for successful fits, while successful and unsuccessful fit counts are presented separately. A failed fit counts as a completed attempted fit: its error and diagnostic record are saved, and its seed is neither replaced nor rerun merely to obtain a successful result.
 
-For a paired comparison of methods $m_1$ and $m_2$, define the number of jointly successful replications as
+For a paired comparison of methods $m_1$ and $m_2$, let $\mathcal{A}_c$ be the prespecified attempted replication-ID set for block or cell $c$. Define the number of jointly successful replications as
 
 $$
 n^{\mathrm{pair}}_{c,m_1,m_2} =
-\sum_{b=1}^{B}
-S_{bc m_1}S_{bc m_2}.
+\sum_{b\in\mathcal{A}_c}
+S_{bc,m_1}S_{bc,m_2}.
 $$
 
-The paired mean and its MCSE are calculated only from these jointly successful replications, with $n^{\mathrm{pair}}_{c,m_1,m_2}$ replacing $B$ in both the mean and the MCSE denominator. The attempted replication count, method-specific failure rates, jointly successful count, and characteristics of excluded datasets are reported alongside every affected comparison.
+The paired mean and its MCSE are calculated only from these jointly successful replications, with $n^{\mathrm{pair}}_{c,m_1,m_2}$ in both the mean and the MCSE denominator. The attempted replication count, method-specific failure rates, jointly successful count, and characteristics of excluded datasets are reported alongside every affected comparison.
 
-Marginal method-specific performance estimates analogously use that method's number of successful fits, rather than the attempted count $B$, in their mean and MCSE formulas.
+Marginal method-specific performance estimates analogously use that method's number of successful fits, rather than $|\mathcal{A}_c|$, in their mean and MCSE formulas. A mean is reported only when its relevant success count is at least one, and an MCSE only when that count is at least two; otherwise the statistic is recorded as undefined together with the count and failure records.
 
 The prespecified fit-failure threshold is 5% per method and design cell. If any fitted core method exceeds this threshold in any core cell during the pilot, the main simulation is paused while the implementation and numerical diagnostics are investigated. In the main simulation, failed fits are never replaced. If a final failure rate exceeds 5%, the affected paired performance result is explicitly labelled as conditional on joint fitting success and interpreted together with the failure analysis.
 
@@ -1383,7 +1477,7 @@ The pilot is used to verify:
 - correct implementation of all performance measures;
 - the variability of the paired network-versus-nodewise AISE differences.
 
-Let $c$ index a core simulation cell. The replication-count rule is based only on the primary network-REML-versus-nodewise comparison in the 16 core cells; negative controls, oracle fits, larger-graph cells, clustering, and other optional analyses do not determine the core replication count. Let
+Let $c$ index a core simulation cell. The replication-count rule is based only on the primary network-REML-versus-nodewise comparison in the 16 core cells; negative controls, oracle fits, larger-graph cells, and clustering do not determine the core replication count. Let
 
 $$
 n^{\mathrm{pilot,pair}}_c =
@@ -1398,10 +1492,10 @@ $$
 \overline{\Delta}^{\mathrm{pilot}}_c =
 \frac{1}{n^{\mathrm{pilot,pair}}_c}
 \sum_{b:\,S_{bc,\mathrm{network}}S_{bc,\mathrm{nodewise}}=1}
-\Delta_{bc}
+\Delta_{bc,\mathrm{network}}
 $$
 
-denote the pilot mean paired improvement, and let $s^{\mathrm{pilot}}_{\Delta,c}$ denote the corresponding sample standard deviation.
+denote the pilot mean paired improvement, and let $s^{\mathrm{pilot}}_{\Delta,c}$ denote the corresponding sample standard deviation. The pilot nodewise MISE used below is calculated only over successful nodewise fits in cell $c$. If fewer than two jointly successful pairs are available, or if no successful nodewise fit is available, the replication-count calculation is undefined and the pilot is paused for investigation.
 
 The MCSE tolerance for cell $c$ is
 
@@ -1439,13 +1533,40 @@ $$
 
 Thus, the main simulation attempts at least 200 replications per cell and rounds the required number upward to a multiple of 50. Using a common $B$ preserves a balanced set of attempted datasets across cells. The realised jointly successful counts used in paired analyses may be smaller and are reported separately.
 
-If the calculated $B$ is not computationally feasible, it is not silently truncated. The unmet MCSE target is documented, and optional analyses are reduced according to Section 11 before any change to the core replication count is considered.
+If the calculated $B$ is not computationally feasible, it is not silently truncated. The unmet MCSE target is documented, and the restricted oracle scope is reduced according to Section 11 before any change to the core replication count is considered.
 
 Pilot replications are not included in the final performance estimates. If the DGP or fitting procedure is changed after the pilot, the relevant pilot checks and the replication calculation are repeated before the main simulation is started.
 
-### 8.2 Random numbers, processing order, and reproducibility
+### 8.2 Runner implementation contract
 
-Each replication $b$ is assigned a unique master seed. Deterministic substreams derived from this master seed are used for truth generation, unstructured coefficient components, observation errors, and any method-specific random operations. Consequently, results do not depend on the order in which cells or methods are executed.
+Scenario identifiers are generated from a frozen scenario table and have the canonical form
+
+```text
+<block>__n<N>__<truth>__a<alpha>__<graph>__s<sigma>
+```
+
+with decimal points encoded as `p`, for example `core__n25__coordinate__a0p9__rook__s0p5`. Replication identifiers are positive integers within a simulation phase. The pair `(phase, replication_id)` identifies a random-number stream. Each attempted fit has a unique `fit_id`: it equals the method ID for M0, M1, M3, and M4, and includes the two candidate offsets for an M2 candidate. The tuple `(phase, scenario_id, replication_id, fit_id)` is the primary key of a fit-result record.
+
+| Block | Scenario outputs | Attempted IDs | Required methods or operations | Prespecified reuse |
+|---|---:|---:|---|---|
+| Known-answer sanity | 1 | 50 | M1, M3 | Same dataset for both methods |
+| Core factorial | 16 | Common $B$ | M0, M1, M3, M4 | Eight independent datasets per ID; rook/queen share truth and observations; M0/M3/M4 computed once per dataset |
+| Uninformative-graph control | 2 | Same $B$ IDs | M0, M1, M3, M4 | Rook/queen share one dataset per ID; graph-independent methods computed once |
+| False-graph control | 2 additional graph fits | Same $B$ IDs as matched core cells | M1 with rewired graph | Truth, observations, and correct-rook M1 result reused from the matched core cell |
+| Oracle pilot | 4 | First 50 pilot IDs | M1 plus complete M2 search | Same dataset and REML start within each cell; no final-performance contribution |
+| Oracle main | 4 | First 100 main IDs | Reused M1 plus complete M2 search | Same core or negative-control dataset and M1 result |
+| Larger graph | 2 | Common fixed $B_{100}$ | M1, M3 | Same dataset for both methods; no M0 or M4 |
+| Clustering | 8 linked core outputs | No additional datasets | Derived from M0, M1, M3, and truth | Four independent cluster datasets per ID; graph-independent inputs and truth reference computed once |
+
+Every attempted fit record stores at least: `phase`, `scenario_id`, `replication_id`, `dataset_id`, `method_id`, `fit_id`, graph identifier and adjacency hash, master-stream identifier, component-substream identifiers, start and end timestamps, elapsed time, success indicator, convergence status, warning count and messages, error class and message, prediction-finiteness flag, AISE and node-level summaries when available, log smoothing parameters, EDF and attainable ranks, diagnostic flags, software versions, and a hash of the frozen specification and scenario table. Candidate-level M2 records additionally store offsets, fixed smoothing parameters, AISE, success diagnostics, and the deterministic selection result.
+
+The checkpoint key is `(phase, replication_id)`. A checkpoint is published atomically only after every record required by the frozen scenario table for that phase and replication has been written, including explicit failure records. A manifest row stores the checkpoint key, expected and observed record counts, file hash, completion time, and status. Aggregation uses the record primary key `(phase, scenario_id, replication_id, fit_id)`; exact duplicate rows with identical content hashes are collapsed deterministically, whereas conflicting duplicates cause aggregation to stop with an error. No result is selected by file modification time.
+
+### 8.3 Random numbers, processing order, and reproducibility
+
+The simulation uses `RNGkind("L'Ecuyer-CMRG")`. Before any parallel or performance run, a seed ledger is generated serially from a fixed base seed. Independent streams are assigned in the fixed phase order `sanity`, `pilot`, `oracle_pilot`, `timing_n100`, `main`, and `n100`; within each phase, streams are assigned by increasing replication identifier using `parallel::nextRNGStream()`. The base seed and complete ledger are saved with the frozen scenario table.
+
+Within each replication stream, `parallel::nextRNGSubStream()` assigns component substreams in the fixed order `coordinate_unstructured`, `cluster_unstructured`, `observation_error`, `clustering`, and `method_auxiliary`. Components that require several draws use a documented fixed internal order by graph size, DGP, temporal component, and noise-free dataset identifier. No seed is derived from task order, worker number, elapsed time, or character hashing. Consequently, results do not depend on the order in which cells or methods are executed.
 
 Common random numbers are used for paired comparisons. Within replication $b$:
 
@@ -1474,15 +1595,35 @@ Pilot and main-simulation seeds are stored separately. Scenario definitions, ran
 
 ## 9. Analysis and Presentation
 
-### 9.1 Main tables
+### 9.1 Estimand-to-output and DGP-validation tables
+
+The reporting contract is fixed as follows:
+
+| Target | Measure | Output |
+|---|---|---|
+| Absolute average reconstruction | MISE and marginal MCSE | Core method-by-cell table |
+| Individual-node reconstruction | Monte Carlo mean and median of $\mathrm{MedISE}$ and $\mathrm{WorstISE}$ | Secondary core table |
+| Network benefit over nodewise | Paired mean AISE improvement and paired MCSE | Primary comparison table and figure |
+| Neighbourhood-density effect | Paired rook-minus-queen AISE difference and MCSE | Density table and figure |
+| False-graph cost | Paired rewired-minus-rook AISE difference and MCSE | Negative-control table and figure |
+| Relative reconstruction | Joint-success rMISE; median and IQR of RI | Secondary core table and heatmap |
+| Cluster-boundary loss | Matched boundary DiD and paired MCSE | Cluster table and figure |
+| Restricted tuning potential | Restricted oracle gap and paired MCSE | Oracle table |
+| Scalability | Runtime, fit diagnostics, MISE, and paired improvement | Separate $N=100$ table |
+| Cluster preservation | Truth-reference and method-specific ARI summaries | One supplementary table or figure |
+
+A separate DGP-validation table is produced before estimator-performance summaries are inspected. For every distinct generated truth configuration it records $\mathrm{SNR}_{\mathrm{overall}}$, $\mathrm{SNR}_{\mathrm{dev}}$, and $\mathrm{RPE}_{\mathrm{dev}}$; for every fitted graph it records $R^{\mathrm{MRF}}_{k,G}$ and $R^{\mathrm{norm}}_{k,G}$ for $k=1,2,3$. For the retained rewired graph it additionally records the adjacency-list hash, edge-overlap proportion, $E_{d,G}$, and $Q_d$ for both DGPs. Values that are identical because a truth or dataset is reused are stored once and linked by scenario identifier rather than duplicated as independent observations.
+
+### 9.2 Main performance tables
 
 For every core combination of truth structure, structured-signal proportion, neighbourhood density, and noise level, the following are reported:
 
 - estimated MISE and its marginal MCSE for every available method, with raw and pooled results labelled as diagnostic benchmarks;
-- mean paired AISE improvement $\widehat{\Delta}_m$ and its paired MCSE, with network-REML versus nodewise identified as the primary method comparison;
+- mean paired AISE improvement $\widehat{\Delta}_{c,m}$ and its paired MCSE, with network-REML versus nodewise identified as the primary method comparison;
 - direct paired rook-versus-queen AISE difference $\widehat{\Delta}^{(\mathrm{density})}_{c}$ and its paired MCSE for each otherwise identical design cell;
 - direct paired rewired-versus-correct-rook AISE difference $\widehat{\Delta}^{(\mathrm{false})}_{d}$ and its paired MCSE for each false-graph control DGP;
 - aggregate rMISE relative to nodewise smoothing;
+- Monte Carlo mean and median of the replication-specific median-node and worst-node ISE;
 - median and interquartile range of replication-specific RI;
 - mean, median, and selected quantiles of computation time;
 - numbers of successful, failed, warning-producing, and non-converged fits;
@@ -1493,9 +1634,9 @@ For cluster-structured cells, matched boundary DiD and its paired MCSE are addit
 
 The $N=100$ table treats the high-structure and negative-control cells as computational scalability stress tests. It reports the prespecified attempted count, realised method-specific and jointly successful counts, MISE and MCSE, paired network-versus-nodewise improvement and MCSE, failure rates, runtime, log smoothing parameters, and EDF separately for each cell. The matched $N=25$ results are shown alongside them only as descriptive reconstruction references; no paired cross-size contrast or formal node-count effect is reported.
 
-The known-answer sanity check is reported separately with its mean paired improvement, paired MCSE, proportion of replications with positive improvement, and pass/fail status. It is not pooled with the core simulation results.
+The known-answer sanity check is reported separately with its attempted, method-specific successful, and jointly successful counts; mean paired improvement; paired MCSE; proportion of jointly successful replications with positive improvement; and pass/fail status. It is not pooled with the core simulation results.
 
-### 9.2 Main figures
+### 9.3 Main figures
 
 The planned figures include:
 
@@ -1509,7 +1650,7 @@ The planned figures include:
 8. term-level log smoothing parameters and EDF diagnostics;
 9. secondary clustering agreement for the eight cluster-structured core cells, including the truth-reference ARI, method-specific median and interquartile range, degenerate frequency, and jointly successful counts.
 
-Figures distinguish the 16 core cells from negative controls, larger-graph cells, oracle diagnostics, and other optional analyses.
+Figures distinguish the 16 core cells from negative controls, larger-graph cells, oracle diagnostics, and the secondary clustering analysis.
 
 ---
 
@@ -1535,10 +1676,10 @@ The core design choices are prespecified above. The following checks are complet
    $$
 
    if this check fails, stop and inspect smoothing-parameter extraction, ordering, and fixed-parameter refitting before conducting the oracle analysis;
-8. apply the prespecified directional oracle coarse-grid boundary rule, document every expansion, and fix the final grid before the main oracle analysis; if a boundary frequency remains above 5% at the maximum range $[-8,8]$, retain and report the `range-inadequate` designation;
+8. on the first 50 prespecified pilot IDs in each oracle cell, apply the prespecified directional oracle coarse-grid boundary rule, document the attempted and successful search counts and every expansion, and fix the final grid before the main oracle analysis; if a boundary frequency remains above 5% at the maximum range $[-8,8]$, retain and report the `range-inadequate` designation;
 9. using five independent timing replications per $N=100$ cell, record the two median complete-replication times and fix the largest feasible $B_{100}\in\{100,50,25\}$ under the prespecified eight-hour projected serial-runtime budget; if $B_{100}=25$ is not feasible, pause the larger-graph block and record computational infeasibility;
 10. verify on a toy cluster-structured dataset that the clustering pipeline uses identical trapezoidal weights and replication-specific seeds for raw, network-REML, nodewise, and truth-reference curves, and that degenerate inputs are assigned ARI 0;
-11. decide whether optional robustness analyses remain feasible after completing the required analyses.
+11. validate the frozen scenario table, seed ledger, expected record counts, atomic checkpoint publication, resume behaviour, and deterministic duplicate detection on an interrupted miniature run.
 
 Every resulting choice, diagnostic value, seed, and final scenario table is saved before the main simulation is launched. The main simulation does not begin unless the known-answer check passes. If a pilot check changes the DGP or fitting procedure, the affected pilot checks, including the known-answer check when relevant, are repeated.
 
@@ -1554,10 +1695,9 @@ If computational time is limited, analyses are prioritised as follows:
 4. **Pooled baseline;**
 5. **Matched cluster-boundary analysis and secondary clustering task;**
 6. **Two fixed $N=100$ cells;**
-7. **Restricted oracle diagnostics;**
-8. **Optional robustness analyses.**
+7. **Restricted oracle diagnostics.**
 
-If further reductions are necessary, optional robustness analyses are omitted first, followed by a reduction of the oracle scope. The known-answer sanity check, core benchmark, negative controls, and low-cost clustering analysis are retained. The fixed $N=100$ block is also retained subject to the prespecified timing-feasibility rule in Section 3.9; it is not replaced by a post hoc smaller design if even 25 replications per cell exceed the budget.
+If further reductions are necessary, the restricted oracle scope is reduced first. The known-answer sanity check, core benchmark, negative controls, and low-cost clustering analysis are retained. The fixed $N=100$ block is also retained subject to the prespecified timing-feasibility rule in Section 3.9; it is not replaced by a post hoc smaller design if even 25 replications per cell exceed the budget.
 
 ---
 
@@ -1565,9 +1705,9 @@ If further reductions are necessary, optional robustness analyses are omitted fi
 
 | ADEMP component | Specification |
 |---|---|
-| Aim | Assess the benefit and potential harm of graph information for reconstructing node-specific curves |
+| Aim | Assess the benefit and potential harm of graph information for reconstructing node-specific curves, with a separate scalability stress test |
 | Data | $N=25$, $5\times5$ lattice, $T=50$, one noisy curve per node, Gaussian independent errors |
-| Truth | Coordinate-smooth or cluster-structured curves generated independently of the estimator graph |
+| Truth | Fixed $\mu(t)$ and three fixed temporal basis functions; coordinate-smooth or cluster-structured coefficient fields generated independently of the estimator graph |
 | Structured signal | $\alpha=0.5,0.9$ with fixed marginal coefficient variance |
 | Graph density | Rook and queen adjacency applied to the same truth and observations |
 | Noise level | $\sigma=0.2,0.5$, verified using overall and deviation SNR |
@@ -1576,7 +1716,7 @@ If further reductions are necessary, optional robustness analyses are omitted fi
 | Fixed fitting settings | Cubic P-splines with first-order difference penalties; $K_{\mathrm{int}}=10$, $K_{\mathrm{dev}}=15$; Gaussian identity-link models; REML; common 50-point prediction grid |
 | Primary estimand | True node-specific functions $f_i(t)$ |
 | Primary measures | MISE and paired AISE improvement over nodewise smoothing with paired MCSE |
-| Secondary measures | Direct paired rook-versus-queen and rewired-versus-correct-rook AISE contrasts, rMISE, descriptive RI, matched boundary DiD, runtime, smoothing diagnostics, warnings and failures |
+| Secondary measures | Median-node and worst-node ISE, direct paired rook-versus-queen and rewired-versus-correct-rook AISE contrasts, joint-success rMISE, descriptive RI, matched boundary DiD, runtime, smoothing diagnostics, warnings and failures |
 | Core design | 16 factorial cells with a pilot-determined common $B\geq200$ attempted replications; failed fits are recorded and never replaced |
 | Failure policy | Success requires no error, no reported non-convergence, and finite predictions; pilot failure threshold 5% per fitted core method and cell; paired MCSE uses the jointly successful count |
 | Known-answer check | Coordinate-smooth truth, $\alpha=1$, rook graph, $\sigma=0.5$, $N=25$, $T=50$, and $B_{\mathrm{sanity}}=50$, with three prespecified pass criteria |
@@ -1584,10 +1724,13 @@ If further reductions are necessary, optional robustness analyses are omitted fi
 | Larger graph | Two fixed $N=100$ scalability cells: high-structure and negative control; coefficient scales fixed to the $N=25$ reference; $B_{100}\in\{100,50,25\}$ chosen from complete-replication timing under an eight-hour budget; descriptive cross-size comparison only |
 | Oracle | Restricted prespecified coarse-to-fine search in four cells; initial 25-point coarse grid, deterministic directional expansion rule and local $3\times3$ refinement; first $B_{\mathrm{oracle}}=100$ attempted main-simulation replication IDs; paired summaries use jointly successful fits |
 | Clustering | Secondary descriptive analysis in the eight cluster-structured core cells; raw, network-REML, and nodewise reconstructions plus a truth-curve reference; two-cluster $k$-means, ARI, degenerate frequency, and joint-success failure handling |
+| Reproducibility | Frozen scenario table; `L'Ecuyer-CMRG` stream/substream ledger; replication-major atomic checkpoints; explicit failure records; hash-based deterministic deduplication |
 
 ## 13. Future Work
 
 A future extension may study prediction of complete functions at unobserved graph nodes and compare an adapted network method with functional kriging, for example through `SpatFD`. Because this is a spatial-prediction problem rather than reconstruction at observed nodes, it requires a separate node-holdout ADEMP specification with its own data-generating assumptions, comparators, tuning rules, performance measures, replication count, and failure policy. It is not part of the present simulation study.
+
+Temporally correlated or heteroscedastic errors, a $\sigma=0.1$ high-information setting, and additional graph perturbations are also reserved for future work. None is run under the present specification. Any such extension requires a separate prespecification, including its exact DGP, cells, methods, replication count, estimands, performance measures, and failure policy, before the corresponding results are generated or inspected.
 
 ## References
 
