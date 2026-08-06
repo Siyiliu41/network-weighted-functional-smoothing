@@ -48,3 +48,6 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 .positai
+
+# Generated simulation results
+simulation/results/
