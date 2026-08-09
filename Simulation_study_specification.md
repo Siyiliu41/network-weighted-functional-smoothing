@@ -2,7 +2,7 @@
 
 ## Specification According to the ADEMP Framework
 
-**Status:** Frozen prespecification before conducting and inspecting the main simulation results; pilot-dependent quantities are fixed only by the rules in Sections 8 and 10
+**Status:** Revised prespecification for supervisor review; all pilot-dependent decisions are governed by the prespecified rules in Sections 8 and 10
 **Framework:** ADEMP framework proposed by Morris, White, and Crowther (2019)
 
 ## 1. Overview
@@ -644,7 +644,7 @@ $$
 }.
 $$
 
-Here, $\Pi_{K_{\mathrm{dev}}}\delta_i$ denotes the best unpenalised approximation of $\delta_i$ in the deviation basis used by the fitted model. The core simulation proceeds only if $\mathrm{RPE}_{\mathrm{dev}}\leq0.02$. Any necessary increase in the basis dimension will be made and documented before the main simulation results are inspected.
+Here, $\Pi_{K_{\mathrm{dev}}}\delta_i$ denotes the best unpenalised approximation of $\delta_i$ in the deviation basis used by the fitted model. The target is a relative projection error below 2%, preferably close to or below 1%. The core simulation proceeds only if $\mathrm{RPE}_{\mathrm{dev}}<0.02$. Any necessary increase in the basis dimension will be made and documented before the main simulation results are inspected.
 
 ---
 
@@ -1210,9 +1210,7 @@ $$
 \sum_{b\in\mathcal{S}_c^{(\mathrm{oracle})}}G_{bc},
 $$
 
-This paired MCSE is the primary Monte Carlo uncertainty measure for the network-versus-nodewise comparison.
-
-At the aggregate level, the MISE ratio is
+and
 
 $$
 \mathrm{MCSE}(\widehat{G}_c) =
@@ -1579,15 +1577,17 @@ Common random numbers are used for paired comparisons. Within replication $b$:
 - the network and nodewise methods are therefore compared on identical data;
 - raw, nodewise, and pooled estimators, which do not depend on the estimator graph, are computed once per simulated dataset and their results are reused in the paired rook-versus-queen analysis.
 
-The simulation is processed in replication-major order:
+The simulation is processed in replication-major order within every simulation phase. For each main-phase replication, all required core cells and all linked negative-control fits are attempted before the replication-level checkpoint is published. The oracle and $N=100$ blocks follow the same replication-major rule within their respective phases.
+
+For each replication:
 
 1. generate all random components required for replication $b$;
-2. run every prespecified core cell for replication $b$;
-3. fit all methods and calculate all performance measures for those cells;
+2. run every prespecified cell required in the current phase for replication $b$;
+3. fit all required methods and calculate all performance measures for those cells;
 4. save a replication-level result object containing either a success record or a failure record for every attempted fit, and mark replication $b$ as complete;
 5. proceed to replication $b+1$.
 
-A replication is included in the aggregated results only after all required core fits have been attempted and a success or failure record has been saved for each one. If execution stops before this complete result object is saved, the interrupted replication is recomputed from its original master seed when the run resumes. By contrast, a recorded model-fitting failure is a completed attempted fit and does not cause the dataset to be regenerated, the seed to be changed, or the fit to be repeatedly retried.
+A replication is included in the aggregated results only after all fits required by the frozen scenario table for the current phase have been attempted and a success or failure record has been saved for each one. If execution stops before this complete result object is saved, the interrupted replication is recomputed from its original master seed when the run resumes. By contrast, a recorded model-fitting failure is a completed attempted fit and does not cause the dataset to be regenerated, the seed to be changed, or the fit to be repeatedly retried.
 
 Results are checkpointed by replication rather than only by scenario. A completion manifest records the identifiers of replication objects that have been completely saved, irrespective of whether individual fits succeeded. This ensures that an interrupted run leaves the same number of attempted replications in every core cell and remains directly evaluable.
 
@@ -1661,7 +1661,7 @@ Figures distinguish the 16 core cells from negative controls, larger-graph cells
 The core design choices are prespecified above. The following checks are completed using pilot or timing runs before the main performance results are inspected:
 
 1. run the prespecified known-answer sanity check in Section 3.8 and verify that all three pass criteria are satisfied;
-2. verify that the relative unpenalised projection error is at most 2%;
+2. verify that the relative unpenalised projection error is below 2%, preferably close to or below 1%;
 3. verify that $\sigma=0.2$ and $\sigma=0.5$ produce meaningfully distinct overall and deviation SNR values;
 4. verify that the fixed rewired graph satisfies all structural requirements and $Q_d\geq1.5$ separately for both DGPs;
 5. determine the common core replication count using the paired-MCSE rule in Section 8.1;

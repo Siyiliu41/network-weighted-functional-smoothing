@@ -3,7 +3,8 @@
 simulate_observed_curves <- function(
     truth_object,
     sigma = 0.4,
-    seed = NULL) {
+    seed = NULL,
+    standard_normal_errors = NULL) {
   
   required_components <- c(
     "truth",
@@ -42,6 +43,26 @@ simulate_observed_curves <- function(
     stop("`sigma` must be a single non-negative number.")
   }
   
+  if (!is.null(standard_normal_errors)) {
+    if (
+      !is.matrix(standard_normal_errors) ||
+      !is.numeric(standard_normal_errors) ||
+      !identical(dim(standard_normal_errors), dim(true_curves)) ||
+      anyNA(standard_normal_errors) ||
+      any(!is.finite(standard_normal_errors))
+    ) {
+      stop(
+        "`standard_normal_errors` must be a finite numeric matrix ",
+        "with the same dimensions as `truth_object$truth`."
+      )
+    }
+    
+    if (!is.null(seed)) {
+      stop(
+        "Supply either `seed` or `standard_normal_errors`, not both."
+      )
+    }
+  }
   if (!is.null(seed)) {
     if (
       !is.numeric(seed) ||
@@ -92,15 +113,19 @@ simulate_observed_curves <- function(
     set.seed(seed)
   }
   
-  noise <- matrix(
-    stats::rnorm(
-      n = length(true_curves),
-      mean = 0,
-      sd = sigma
-    ),
-    nrow = nrow(true_curves),
-    ncol = ncol(true_curves)
-  )
+  if (is.null(standard_normal_errors)) {
+    noise <- matrix(
+      stats::rnorm(
+        n = length(true_curves),
+        mean = 0,
+        sd = sigma
+      ),
+      nrow = nrow(true_curves),
+      ncol = ncol(true_curves)
+    )
+  } else {
+    noise <- sigma * standard_normal_errors
+  }
   
   observed_curves <- true_curves + noise
   
