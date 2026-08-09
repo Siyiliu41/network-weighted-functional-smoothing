@@ -11,14 +11,14 @@ run_core_cell <- function(
     k_nodewise = 15L,
     k_pooled = 10L,
     keep_predictions = FALSE) {
-  
+
   required_scenario_entries <- c(
     "cell",
     "graph",
     "truth_object",
     "simulated_data"
   )
-  
+
   if (
     !is.list(scenario) ||
     !all(required_scenario_entries %in% names(scenario))
@@ -28,7 +28,7 @@ run_core_cell <- function(
       "`generate_core_scenarios()`."
     )
   }
-  
+
   if (
     !is.numeric(replication_id) ||
     length(replication_id) != 1L ||
@@ -38,7 +38,7 @@ run_core_cell <- function(
   ) {
     stop("`replication_id` must be a positive integer.")
   }
-  
+
   if (
     !is.numeric(seed) ||
     length(seed) != 1L ||
@@ -47,14 +47,14 @@ run_core_cell <- function(
   ) {
     stop("`seed` must be one finite number.")
   }
-  
+
   basis_dimensions <- c(
     k_intercept = k_intercept,
     k_deviation = k_deviation,
     k_nodewise = k_nodewise,
     k_pooled = k_pooled
   )
-  
+
   if (
     anyNA(basis_dimensions) ||
     any(basis_dimensions < 3) ||
@@ -62,20 +62,20 @@ run_core_cell <- function(
   ) {
     stop("All basis dimensions must be integers of at least 3.")
   }
-  
+
   replication_id <- as.integer(replication_id)
   seed <- as.integer(seed)
-  
+
   simulation_data <- scenario$simulated_data
   cell <- scenario$cell
-  
+
   if (!is.data.frame(cell) || nrow(cell) != 1L) {
     stop("`scenario$cell` must be a one-row data frame.")
   }
-  
-  
+
+
   # Raw observations -----------------------------------------------------
-  
+
   raw_run <- capture_method_run(
     function() {
       node_ise <- calculate_node_ise(
@@ -83,7 +83,7 @@ run_core_cell <- function(
         truth = simulation_data$truth,
         t_grid = simulation_data$t_grid
       )
-      
+
       list(
         ise_summary = summarise_ise(node_ise),
         node_ise = node_ise,
@@ -96,13 +96,13 @@ run_core_cell <- function(
       )
     }
   )
-  
+
   # Raw observations require no fitting.
   raw_run$elapsed_seconds <- NA_real_
-  
-  
+
+
   # Pooled smoothing -----------------------------------------------------
-  
+
   pooled_run <- capture_method_run(
     function() {
       fit <- fit_pooled_smoothing(
@@ -111,17 +111,20 @@ run_core_cell <- function(
         k = k_pooled,
         keep_model = FALSE
       )
-      
+
       node_ise <- calculate_node_ise(
         estimate = fit$predictions,
         truth = simulation_data$truth,
         t_grid = simulation_data$t_grid
       )
-      
+
       list(
         ise_summary = summarise_ise(node_ise),
         node_ise = node_ise,
-        converged = NA,
+        converged = isTRUE(
+          fit$diagnostics$fit$converged[1L]
+        ),
+        diagnostics = fit$diagnostics,
         predictions = if (keep_predictions) {
           fit$predictions
         } else {
@@ -130,10 +133,10 @@ run_core_cell <- function(
       )
     }
   )
-  
-  
+
+
   # Nodewise smoothing ---------------------------------------------------
-  
+
   nodewise_run <- capture_method_run(
     function() {
       fit <- fit_nodewise_smoothing(
@@ -142,17 +145,25 @@ run_core_cell <- function(
         k = k_nodewise,
         keep_models = FALSE
       )
-      
+
       node_ise <- calculate_node_ise(
         estimate = fit$predictions,
         truth = simulation_data$truth,
         t_grid = simulation_data$t_grid
       )
-      
+
+      nodewise_convergence <-
+        fit$diagnostics$fit$converged
+
+      all_nodewise_models_converged <-
+        length(nodewise_convergence) > 0L &&
+        all(nodewise_convergence %in% TRUE)
+
       list(
         ise_summary = summarise_ise(node_ise),
         node_ise = node_ise,
-        converged = NA,
+        converged = all_nodewise_models_converged,
+        diagnostics = fit$diagnostics,
         predictions = if (keep_predictions) {
           fit$predictions
         } else {
@@ -161,66 +172,78 @@ run_core_cell <- function(
       )
     }
   )
-  
-  
+
+
   # Network-weighted smoothing ------------------------------------------
-  
+
   network_run <- capture_method_run(
     function() {
       fit <- netf_smooth(
         curves = simulation_data$curves,
-        
-        # Important:
-        # use the graph assigned to this estimator cell, not the graph
-        # stored inside the truth or simulated-data object.
+
+        # Use the graph assigned to this estimator cell,
+        # not the graph stored in the truth object.
         graph = scenario$graph,
-        
+
         sandwich = "none",
-        
+
         bs.int = list(
           bs = "ps",
           k = k_intercept,
           m = c(2, 1)
         ),
-        
+
         bs.yindex = list(
           bs = "ps",
           k = k_deviation,
           m = c(2, 1)
         )
       )
-      
-      converged <- isTRUE(fit$model$converged)
-      
+
+      diagnostics <- extract_gam_diagnostics(
+        model = fit$model,
+        fit_id = "network"
+      )
+
+      converged <- isTRUE(
+        diagnostics$fit$converged[1L]
+      )
+
       if (!converged) {
-        stop("The network-weighted model did not converge.")
+        stop(
+          "The network-weighted model did not converge."
+        )
       }
-      
+
       prediction_tfd <- predict(fit)
-      
+
       prediction_matrix <- as.matrix(
         prediction_tfd,
         arg = simulation_data$t_grid
       )
-      
+
       if (any(!is.finite(prediction_matrix))) {
         stop(
           "The network-weighted model produced ",
           "non-finite predictions."
         )
       }
-      
+
       node_ise <- calculate_node_ise(
         estimate = prediction_matrix,
         truth = simulation_data$truth,
         t_grid = simulation_data$t_grid
       )
-      
+
       list(
         ise_summary = summarise_ise(node_ise),
         node_ise = node_ise,
         converged = converged,
+        diagnostics = diagnostics,
+
+        # Retained for compatibility with existing pilot summaries.
         smoothing_parameters = fit$model$sp,
+
         predictions = if (keep_predictions) {
           prediction_matrix
         } else {
@@ -229,17 +252,17 @@ run_core_cell <- function(
       )
     }
   )
-  
-  
+
+
   # Combine method-level results ----------------------------------------
-  
+
   method_runs <- list(
     raw = raw_run,
     pooled = pooled_run,
     nodewise = nodewise_run,
     network = network_run
   )
-  
+
   summary_rows <- lapply(
     names(method_runs),
     function(method_name) {
@@ -251,16 +274,22 @@ run_core_cell <- function(
       )
     }
   )
-  
-  summary_table <- do.call(rbind, summary_rows)
+
+  summary_table <- do.call(
+    rbind,
+    summary_rows
+  )
+
   rownames(summary_table) <- NULL
-  
+
   summary_table$cell_id <- cell$cell_id
-  summary_table$truth_structure <- cell$truth_structure
+  summary_table$truth_structure <-
+    cell$truth_structure
   summary_table$alpha <- cell$alpha
-  summary_table$neighbourhood <- cell$neighbourhood
+  summary_table$neighbourhood <-
+    cell$neighbourhood
   summary_table$sigma <- cell$sigma
-  
+
   summary_table <- summary_table[
     ,
     c(
@@ -283,7 +312,10 @@ run_core_cell <- function(
       "elapsed_seconds"
     )
   ]
-  
+
+
+  # Collect node-level ISE results.
+
   node_ise <- lapply(
     method_runs,
     function(run_result) {
@@ -294,7 +326,10 @@ run_core_cell <- function(
       }
     }
   )
-  
+
+
+  # Retain predictions only when requested.
+
   predictions <- if (keep_predictions) {
     lapply(
       method_runs,
@@ -309,21 +344,56 @@ run_core_cell <- function(
   } else {
     NULL
   }
-  
-  network_smoothing_parameters <- if (network_run$success) {
+
+
+  # Retain the old network smoothing-parameter object for
+  # compatibility with the existing pilot-summary code.
+
+  network_smoothing_parameters <- if (
+    network_run$success
+  ) {
     network_run$value$smoothing_parameters
   } else {
     NULL
   }
-  
+
+
+  # Collect diagnostics from all fitted smoothing methods.
+  # Raw has no diagnostics because it does not fit a GAM.
+
+  model_diagnostics <- lapply(
+    c("pooled", "nodewise", "network"),
+    function(method_name) {
+      run_result <- method_runs[[method_name]]
+
+      if (run_result$success) {
+        run_result$value$diagnostics
+      } else {
+        NULL
+      }
+    }
+  )
+
+  names(model_diagnostics) <- c(
+    "pooled",
+    "nodewise",
+    "network"
+  )
+
+
+  # Return all results from this cell and replication.
+
   list(
     cell = cell,
     replication = replication_id,
     seed = seed,
-    basis_dimensions = as.list(basis_dimensions),
+    basis_dimensions = as.list(
+      basis_dimensions
+    ),
     summary = summary_table,
     node_ise = node_ise,
     predictions = predictions,
+    model_diagnostics = model_diagnostics,
     network_smoothing_parameters =
       network_smoothing_parameters
   )
