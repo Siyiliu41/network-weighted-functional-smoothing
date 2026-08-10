@@ -21,6 +21,7 @@ simulation_sources <- c(
   "simulation/R/make_graph.R",
   "simulation/R/generate_truth.R",
   "simulation/R/simulate_data.R",
+  "simulation/R/model_diagnostics.R",
   "simulation/R/fit_baselines.R",
   "simulation/R/metrics.R",
   "simulation/R/rng.R",
@@ -62,7 +63,7 @@ code_files <- c(
 )
 
 pilot_config <- list(
-  pilot_version = "2026-08-06-v1",
+  pilot_version = "2026-08-09-v2",
   base_seed = base_seed,
   n_replications = n_replications,
   replication_seed_labels = replication_seed_labels,
