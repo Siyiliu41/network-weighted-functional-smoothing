@@ -14,6 +14,7 @@ devtools::load_all(
 source("simulation/R/make_graph.R")
 source("simulation/R/generate_truth.R")
 source("simulation/R/simulate_data.R")
+source("simulation/R/model_diagnostics.R")
 source("simulation/R/fit_baselines.R")
 source("simulation/R/metrics.R")
 

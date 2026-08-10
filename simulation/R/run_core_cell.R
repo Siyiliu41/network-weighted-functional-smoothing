@@ -112,6 +112,21 @@ run_core_cell <- function(
         keep_model = FALSE
       )
 
+      pooled_converged <- isTRUE(
+        fit$diagnostics$fit$converged[1L]
+      )
+
+      if (!pooled_converged) {
+        stop("The pooled smoothing model did not converge.")
+      }
+
+      if (any(!is.finite(fit$predictions))) {
+        stop(
+          "The pooled smoothing model produced ",
+          "non-finite predictions."
+        )
+      }
+
       node_ise <- calculate_node_ise(
         estimate = fit$predictions,
         truth = simulation_data$truth,
@@ -121,9 +136,7 @@ run_core_cell <- function(
       list(
         ise_summary = summarise_ise(node_ise),
         node_ise = node_ise,
-        converged = isTRUE(
-          fit$diagnostics$fit$converged[1L]
-        ),
+        converged = pooled_converged,
         diagnostics = fit$diagnostics,
         predictions = if (keep_predictions) {
           fit$predictions
@@ -146,18 +159,33 @@ run_core_cell <- function(
         keep_models = FALSE
       )
 
+      nodewise_convergence <-
+        fit$diagnostics$fit$converged
+
+      all_nodewise_models_converged <-
+        length(nodewise_convergence) ==
+        nrow(simulation_data$observed) &&
+        all(nodewise_convergence %in% TRUE)
+
+      if (!all_nodewise_models_converged) {
+        stop(
+          "At least one nodewise smoothing model ",
+          "did not converge."
+        )
+      }
+
+      if (any(!is.finite(fit$predictions))) {
+        stop(
+          "The nodewise smoothing models produced ",
+          "non-finite predictions."
+        )
+      }
+
       node_ise <- calculate_node_ise(
         estimate = fit$predictions,
         truth = simulation_data$truth,
         t_grid = simulation_data$t_grid
       )
-
-      nodewise_convergence <-
-        fit$diagnostics$fit$converged
-
-      all_nodewise_models_converged <-
-        length(nodewise_convergence) > 0L &&
-        all(nodewise_convergence %in% TRUE)
 
       list(
         ise_summary = summarise_ise(node_ise),
