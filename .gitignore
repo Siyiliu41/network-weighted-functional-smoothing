@@ -51,3 +51,21 @@ rsconnect/
 
 # Generated simulation results
 simulation/results/
+
+# Generated DWD application data and figures
+application/dwd_temperature/data/raw/
+application/dwd_temperature/data/raw_dwd/
+application/dwd_temperature/data/derived/
+application/dwd_temperature/data/*.rds
+application/dwd_temperature/data/dwd_*.csv
+application/dwd_temperature/data/station_audit_2024.csv
+application/dwd_temperature/figures/
+application/dwd_temperature/data/
+
+# Generated RKI application data and figures
+application/rki_covid/data/raw/
+application/rki_covid/data/derived/
+application/rki_covid/figures/
+
+# Generated DWD application data
+application/dwd_temperature/data/
