@@ -132,17 +132,23 @@ README.md                             Project overview and reproduction guide
 ## Reproducibility
 
 # Install development tools if needed
+```r
 install.packages("devtools")
+```
 
 # Install every package declared in netfunsmooth/DESCRIPTION
+```r
 devtools::install_deps(
   "netfunsmooth",
   dependencies = TRUE,
   upgrade = "never"
 )
+```
 
 # Load the local development version
+```r
 devtools::load_all("netfunsmooth")
+```
 
 The main simulation and its summaries can be run in sequence from the
 repository root:
