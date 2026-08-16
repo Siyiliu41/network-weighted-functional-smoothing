@@ -17,6 +17,8 @@ Description: Implements network-weighted smoothing for functional data
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Depends:
+    R (>= 4.1.0)
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 8.0.0
 Config/roxygen2/version: 8.0.0
