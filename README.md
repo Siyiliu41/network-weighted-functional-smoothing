@@ -154,12 +154,27 @@ The main simulation and its summaries can be run in sequence from the
 repository root:
 
 ```r
+source("simulation/02_pilot_simulation.R") 
+source("simulation/03_design_audit.R")
+source("simulation/04_formal_known_answer.R")
+
 source("simulation/05_main_core_simulation.R")
+run_main_core_simulation("dry_run")
+run_main_core_simulation("main")
+
 source("simulation/06_summarise_main_core_results.R")
 source("simulation/07_cluster_boundary_did.R")
 source("simulation/08_run_alpha0_negative_control.R")
 source("simulation/09_summarise_alpha0_negative_control.R")
 ```
+The dry_run performs one complete 16-cell preflight replication and verifies
+the required pilot and known-answer records. The full main run uses 200
+attempted replications per cell and may take substantial time.
+
+Generated checkpoints, fitted objects, tables, and figures are intentionally
+excluded from version control. Consequently, a fresh clone cannot run the
+summary scripts before the required preceding simulation stages have been
+completed.
 
 The DWD and RKI applications can be reproduced with:
 
