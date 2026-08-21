@@ -112,13 +112,13 @@ fit_nodewise_smoothing <- function(observed, t_grid, k) {
     k >= 3L,
     k < length(t_grid)
   )
-
+  
   fitted_values <- matrix(
     NA_real_, nrow = nrow(observed), ncol = ncol(observed),
     dimnames = dimnames(observed)
   )
   converged <- logical(nrow(observed))
-
+  
   for (i in seq_len(nrow(observed))) {
     fit_i <- mgcv::gam(
       response ~ s(week, bs = "ps", k = k, m = c(2, 1)),
@@ -130,7 +130,7 @@ fit_nodewise_smoothing <- function(observed, t_grid, k) {
     )
     converged[i] <- isTRUE(fit_i$converged)
   }
-
+  
   list(fitted = fitted_values, converged = converged, k = k)
 }
 
@@ -618,7 +618,7 @@ saveRDS(results, file.path(derived_dir, "bavaria_application_results.rds"))
 all_packages <- c(required_packages, "netfunsmooth")
 provenance <- list(
   run_finished_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
-  project_dir = project_dir,
+  project_dir = repo_root,
   input_manifest = input_manifest,
   packages = package_versions(all_packages),
   r_version = R.version.string,

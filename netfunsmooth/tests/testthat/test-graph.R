@@ -144,3 +144,35 @@ test_that("unsupported graph classes produce an informative error", {
     "No `graph_to_nb\\(\\)` method"
   )
 })
+
+
+test_that("sf graphs preserve supplied polygon identifiers", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("spdep")
+  
+  square <- function(x) {
+    sf::st_polygon(list(matrix(
+      c(x, 0, x + 1, 0, x + 1, 1, x, 1, x, 0),
+      ncol = 2,
+      byrow = TRUE
+    )))
+  }
+  
+  polygons <- sf::st_sf(
+    node_id = c("09162", "MUC", "09761"),
+    geometry = sf::st_sfc(square(0), square(1), square(2))
+  )
+  
+  result <- graph_to_nb(polygons, id = "node_id", queen = FALSE)
+  
+  expect_identical(names(result), c("09162", "MUC", "09761"))
+  expect_identical(result[["09162"]], "MUC")
+  expect_identical(result[["MUC"]], c("09162", "09761"))
+  expect_identical(result[["09761"]], "MUC")
+  
+  expect_error(graph_to_nb(polygons), "supply.*id")
+  expect_error(
+    graph_to_nb(polygons, id = c("MUC", "MUC", "09761")),
+    "unique"
+  )
+})

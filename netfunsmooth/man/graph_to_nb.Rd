@@ -4,10 +4,14 @@
 \alias{graph_to_nb}
 \title{Convert graph objects to neighbour lists}
 \usage{
-graph_to_nb(graph, ...)
+graph_to_nb(graph, id = NULL, ...)
 }
 \arguments{
 \item{graph}{A graph object.}
+
+\item{id}{For an \code{sf} object, the name of a polygon-identifier column or a
+vector containing one unique identifier per polygon. Ignored for other
+graph classes.}
 
 \item{...}{Additional arguments passed to methods.}
 }

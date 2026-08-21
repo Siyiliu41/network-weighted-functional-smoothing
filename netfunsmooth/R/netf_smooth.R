@@ -4,6 +4,9 @@
 #'
 #' @param curves A `tfd` or `tfb` vector of curves, one function per graph node.
 #' @param graph A graph representation supported by [graph_to_nb()].
+#' @param graph_id For an `sf` graph, the name of the polygon-identifier column
+#'   or a vector of unique polygon identifiers. Ignored for matrices and
+#'   `igraph` objects.
 #' @param sandwich Covariance type passed to [refund::pffr()]. Defaults to
 #'   `"none"` so results do not depend on the installed refund version.
 #' @param bs.int Basis specification for the functional intercept over time.
@@ -14,6 +17,7 @@
 #' @returns An object of class `netf_fit`.
 #' @export
 netf_smooth <- function(curves, graph,
+                        graph_id = NULL,
                         sandwich = "none",
                         bs.int = NULL,
                         bs.yindex = NULL,
@@ -23,6 +27,7 @@ netf_smooth <- function(curves, graph,
 
 #' @export
 netf_smooth.tfd <- function(curves, graph,
+                            graph_id = NULL,
                             sandwich = "none",
                             bs.int = NULL,
                             bs.yindex = NULL,
@@ -30,6 +35,7 @@ netf_smooth.tfd <- function(curves, graph,
   fit_netf_smooth(
     curves = curves,
     graph = graph,
+    graph_id = graph_id,
     sandwich = sandwich,
     bs.int = bs.int,
     bs.yindex = bs.yindex,
@@ -39,6 +45,7 @@ netf_smooth.tfd <- function(curves, graph,
 
 #' @export
 netf_smooth.tfb <- function(curves, graph,
+                            graph_id = NULL,
                             sandwich = "none",
                             bs.int = NULL,
                             bs.yindex = NULL,
@@ -46,10 +53,11 @@ netf_smooth.tfb <- function(curves, graph,
   curve_names <- names(curves)
   curves <- tf::tfd(curves)
   names(curves) <- curve_names
-
+  
   fit_netf_smooth(
     curves = curves,
     graph = graph,
+    graph_id = graph_id,
     sandwich = sandwich,
     bs.int = bs.int,
     bs.yindex = bs.yindex,
@@ -59,6 +67,7 @@ netf_smooth.tfb <- function(curves, graph,
 
 #' @export
 netf_smooth.default <- function(curves, graph,
+                                graph_id = NULL,
                                 sandwich = "none",
                                 bs.int = NULL,
                                 bs.yindex = NULL,
@@ -99,26 +108,26 @@ build_pffr_formula <- function(key, k_node) {
 
 align_curves_to_nodes <- function(curves, node_names) {
   curve_names <- names(curves)
-
+  
   if (is.null(curve_names) || length(curve_names) == 0L) {
     names(curves) <- node_names
     return(curves)
   }
-
+  
   if (length(curve_names) != length(curves) ||
       anyNA(curve_names) || any(!nzchar(curve_names))) {
     cli::cli_abort(
       "If {.arg curves} are named, every curve must have a non-empty name."
     )
   }
-
+  
   if (anyDuplicated(curve_names)) {
     cli::cli_abort("Names of {.arg curves} must be unique.")
   }
-
+  
   missing_curves <- setdiff(node_names, curve_names)
   unknown_curves <- setdiff(curve_names, node_names)
-
+  
   if (length(missing_curves) > 0L || length(unknown_curves) > 0L) {
     problems <- "Curve names and graph node names must agree exactly."
     if (length(missing_curves) > 0L) {
@@ -135,29 +144,30 @@ align_curves_to_nodes <- function(curves, node_names) {
     }
     cli::cli_abort(problems)
   }
-
+  
   curves[match(node_names, curve_names)]
 }
 
 fit_netf_smooth <- function(curves, graph,
+                            graph_id = NULL,
                             sandwich = "none",
                             bs.int = NULL,
                             bs.yindex = NULL,
                             ...) {
-  nb_list <- graph_to_nb(graph)
+  nb_list <- graph_to_nb(graph, id = graph_id)
   n_nodes <- length(curves)
-
+  
   if (length(nb_list) != n_nodes) {
     cli::cli_abort(
       "{.arg curves} must contain one curve for each graph node."
     )
   }
-
+  
   if (is.null(names(nb_list))) {
     names(nb_list) <- as.character(seq_len(n_nodes))
   }
   node_names <- names(nb_list)
-
+  
   if (anyNA(node_names) || any(!nzchar(node_names))) {
     cli::cli_abort("Every graph node must have a non-empty name.")
   }
@@ -165,7 +175,7 @@ fit_netf_smooth <- function(curves, graph,
     cli::cli_abort("Graph node names must be unique.")
   }
   curves <- align_curves_to_nodes(curves, node_names)
-
+  
   t_grid <- tf::tf_arg(curves)
   if (is.list(t_grid)) {
     cli::cli_abort(
@@ -175,12 +185,12 @@ fit_netf_smooth <- function(curves, graph,
   }
   n_t <- length(unique(t_grid))
   y_mat <- do.call(rbind, tf::tf_evaluate(curves, arg = t_grid))
-
+  
   df_wide <- data.frame(
     node = factor(node_names, levels = node_names)
   )
   df_wide$Y <- I(y_mat)
-
+  
   # Default basis dimensions are capped by the grid length; explicit
   # user-supplied values take precedence.
   if (is.null(bs.int)) {
@@ -189,12 +199,12 @@ fit_netf_smooth <- function(curves, graph,
   if (is.null(bs.yindex)) {
     bs.yindex <- list(bs = "ps", k = min(20L, n_t), m = c(2, 1))
   }
-
+  
   key <- register_nb_list(nb_list)
   on.exit(rm(list = key, envir = .nb_registry), add = TRUE)
-
+  
   form <- build_pffr_formula(key, k_node = n_nodes)
-
+  
   fit <- refund::pffr(
     formula = form,
     yind = t_grid,
@@ -204,7 +214,7 @@ fit_netf_smooth <- function(curves, graph,
     bs.yindex = bs.yindex,
     ...
   )
-
+  
   new_netf_fit(
     model = fit,
     curves = curves,

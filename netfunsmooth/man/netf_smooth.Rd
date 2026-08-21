@@ -7,6 +7,7 @@
 netf_smooth(
   curves,
   graph,
+  graph_id = NULL,
   sandwich = "none",
   bs.int = NULL,
   bs.yindex = NULL,
@@ -17,6 +18,10 @@ netf_smooth(
 \item{curves}{A \code{tfd} or \code{tfb} vector of curves, one function per graph node.}
 
 \item{graph}{A graph representation supported by \code{\link[=graph_to_nb]{graph_to_nb()}}.}
+
+\item{graph_id}{For an \code{sf} graph, the name of the polygon-identifier column
+or a vector of unique polygon identifiers. Ignored for matrices and
+\code{igraph} objects.}
 
 \item{sandwich}{Covariance type passed to \code{\link[refund:pffr]{refund::pffr()}}. Defaults to
 \code{"none"} so results do not depend on the installed refund version.}
