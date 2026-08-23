@@ -200,7 +200,8 @@ generate_core_truth <- function(
     t_grid = seq(0, 1, length.out = 50L),
     truth_structure = c("coordinate", "cluster"),
     alpha = 0.9,
-    standard_normal_draws) {
+    standard_normal_draws,
+    coefficient_scales = NULL) {
   
   truth_structure <- match.arg(truth_structure)
   
@@ -219,6 +220,20 @@ generate_core_truth <- function(
     truth_structure = truth_structure
   )
   
+  if (is.null(coefficient_scales)) {
+    coefficient_scales <- fields$coefficient_scales
+  } else {
+    if (!is.numeric(coefficient_scales) ||
+        length(coefficient_scales) != 3L ||
+        any(!is.finite(coefficient_scales)) ||
+        any(coefficient_scales <= 0)) {
+      stop("`coefficient_scales` must contain three positive finite values.")
+    }
+    
+    coefficient_scales <- as.numeric(coefficient_scales)
+    names(coefficient_scales) <- colnames(fields$structured)
+  }
+  
   unstructured <- make_unstructured_fields(
     structured = fields$structured,
     standard_normal_draws = standard_normal_draws
@@ -231,7 +246,7 @@ generate_core_truth <- function(
   coefficients <- sweep(
     coefficient_mixture,
     MARGIN = 2,
-    STATS = fields$coefficient_scales,
+    STATS = coefficient_scales,
     FUN = "*"
   )
   
@@ -264,7 +279,7 @@ generate_core_truth <- function(
     coefficients = coefficients,
     structured_coefficients = fields$structured,
     unstructured_coefficients = unstructured,
-    coefficient_scales = fields$coefficient_scales,
+    coefficient_scales = coefficient_scales,
     temporal_basis = temporal_basis,
     t_grid = t_grid,
     graph = graph,
