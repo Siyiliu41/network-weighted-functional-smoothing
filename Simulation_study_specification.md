@@ -2,29 +2,14 @@
 
 ## Specification According to the ADEMP Framework
 
-**Status:** Frozen prespecification before the corresponding simulation results
-are generated or inspected. The document defines the core experiment, the two
-fixed $N=100$ scalability cells, and the restricted-oracle diagnostic. It does
-not report simulation results or thesis conclusions.
+**Status:** Frozen execution specification (version 2026-08-23).
+
+This document defines the prespecified simulation workflow, decision rules,
+and reporting contract. It contains no execution results, run-status summaries,
+or post hoc conclusions. Pilot-dependent quantities are fixed only by the
+rules in Sections 8 and 10.
 
 **Framework:** ADEMP framework proposed by Morris, White, and Crowther (2019)
-
-### Planned scope
-
-| Component | Planned design |
-|---|---|
-| Known-answer check | Coordinate-smooth sanity setting, $B_{\mathrm{sanity}}=50$, network-REML versus nodewise. |
-| Core factorial experiment | 16 $N=25$ cells; common pilot-determined $B\geq200$. |
-| Methods | Raw, pooled, nodewise, and network-REML in the core experiment. |
-| Cluster-boundary difference-in-differences | Prespecified for the eight cluster-structured cells. |
-| $\alpha=0$ diagnostic | Coordinate-smooth negative control at $\sigma=0.5$ for rook and queen graphs. |
-| Rewired-graph control | Two selected false-graph ablation cells with a fixed degree-preserving rewired rook graph. |
-| $N=100$ scalability cells | Two fixed $10\times10$ rook-lattice cells, following a timing-based replication rule. |
-| Restricted-oracle comparison | Coarse-to-fine diagnostic in four selected $N=25$ cells. |
-| Clustering task | Optional secondary analysis; not part of the current execution priority. |
-
-All components below are design specifications. Results, diagnostics, and
-substantive conclusions are reported only in the thesis.
 
 ## 1. Overview
 
@@ -51,48 +36,31 @@ The study follows the ADEMP framework:
 ## 2. Aims
 
 ### 2.1 Primary aim
-The primary aim is to evaluate whether the complete joint network-weighted estimator improves reconstruction relative to separate nodewise smoothing
-under the examined simulation settings. The comparison includes a common functional mean, jointly selected temporal smoothing parameters, and graph regularisation. It therefore does not isolate the contribution of the
-particular supplied graph edges.
+
+The primary aim is to determine whether incorporating a known graph structure improves the reconstruction of node-specific functions.
 
 The central research question is:
 
-> Under which combinations of signal structure, structured-signal proportion,
-> supplied graph, and observation noise does the complete joint estimator
-> achieve lower reconstruction error than separate nodewise smoothing?
+> Under which combinations of structured-signal proportion, curve structure, neighbourhood density, and observation noise does network-weighted smoothing achieve a lower reconstruction error than nodewise smoothing without graph information?
 
 ### 2.2 Secondary aims
 
-The simulation additionally addresses the following questions:
+The simulation study additionally addresses the following questions:
 
-1. How does the relative performance of the complete joint estimator vary with
-   structured-signal proportion?
-2. How does relative performance vary with observation noise?
-3. How do rook and queen neighbourhood graphs compare when the simulated truth
-   and observations are held fixed?
-4. Does the estimator improve reconstruction for both coordinate-smooth and
-   cluster-structured signals?
-5. Is the relative advantage of the estimator attenuated near cluster
-   boundaries?
-6. How frequently do numerical warnings, convergence problems, or failed fits
-   occur?
-7. In selected high-structure, high-noise settings, does replacing the
-   scientifically aligned rook edges by a fixed degree-preserving rewired graph
-   increase reconstruction error?
-8. How do runtime, numerical stability, and descriptive reconstruction
-   accuracy change in the two fixed $N=100$ cells?
-9. In four representative $N=25$ cells, how much of the REML reconstruction
-   error can be reduced by restricted reselection of the two interaction
-   smoothing parameters?
+1. Does the advantage of network-weighted smoothing increase with structured-signal proportion?
+2. Is graph information particularly beneficial when the observations are strongly contaminated by noise?
+3. How does neighbourhood density affect estimation accuracy and potential oversmoothing?
+4. Can the method reconstruct both coordinate-smooth and block- or cluster-structured curves?
+5. Does the reconstruction error increase near boundaries between clusters?
+6. In selected representative cells, how closely does REML approach restricted oracle smoothing-parameter selection?
+7. Do the reconstructed curves preserve the prespecified cluster structure, and how does clustering agreement differ across smoothing methods?
+8. How frequently do numerical warnings, convergence problems, or failed fits occur?
+9. What is the reconstruction cost of supplying an actively misleading graph rather than the correct graph?
+10. How do computation time, numerical stability, and descriptive reconstruction accuracy change in two prespecified $N=100$ scalability cells?
 
-The rook-versus-queen comparison changes the graph supplied to the estimator
-while holding the true curves and observations fixed. It is descriptive and
-does not by itself identify a graph-topology-specific causal effect.
+The effect of neighbourhood density is evaluated primarily through the direct paired rook-versus-queen difference in AISE within otherwise identical design cells.
 
-The fixed rewired-graph control assesses the effect of one actively misleading
-graph in two selected settings. It does not estimate a general effect over a
-distribution of rewired graphs. The $N=100$ and restricted-oracle blocks are
-reported separately from the primary core benchmark.
+The cost of graph misspecification is evaluated through the direct paired rewired-versus-correct-rook difference in AISE within otherwise identical false-graph control cells.
 
 ### 2.3 Expected qualitative results
 
@@ -546,99 +514,118 @@ $$
 \geq0.80.
 $$
 
-These criteria require a positive average improvement, an improvement that is clear relative to Monte Carlo uncertainty, and improvement in at least 80% of jointly successful replications. The attempted count, both method-specific success counts, and the jointly successful count are reported. If either method fails in more than 5% of the 50 attempted replications, the check is not passed even if the three performance criteria hold. The check is diagnostic and is not included in the 16-cell core design or in the main performance estimates.
+These criteria require a positive average improvement, an improvement that is clear relative to Monte Carlo uncertainty, and improvement in at least 80% of jointly successful replications. The attempted count, both method-specific success counts, and the jointly successful count are reported. If either method fails in more than 5% of the 50 attempted replications, the check is not passed even if the three performance criteria hold. The check is diagnostic and is not included in the 16-cell core design or in the final core performance estimates.
 
 If the check fails, the main simulation is paused. Graph-to-node alignment, truth generation, basis representation, penalty construction, smoothing-parameter extraction, prediction, and performance-measure implementation are then inspected. The DGP and pass criteria are not tuned in response to the observed sanity-check performance. Any implementation correction is documented, and the sanity check is rerun with a new prespecified seed set before the main simulation starts.
 
 This formal $T=50$ check is distinct from the existing $T=30$ software smoke test, whose purpose is only to verify that the workflow runs.
 
-The $\alpha=0$ diagnostic uses the coordinate-smooth DGP at $\sigma=0.5$ with
-both rook and queen estimator graphs. The deliberately
-structured coefficient component receives zero weight, so the node-specific
-deviations are not deliberately aligned with the supplied graph.
+#### Additional negative controls
 
-This diagnostic does not isolate a graph-topology-specific effect. Instead, it
-assesses whether the comparison with separate nodewise smoothing can reflect
-generic joint shrinkage in addition to graph-aligned borrowing.
+Two distinct negative controls are included because an uninformative graph and a false graph represent different failure modes.
 
-#### Rewired-graph control
+**Uninformative graph control.** The setting $\alpha=0$ removes the structured coefficient component. It is evaluated for the coordinate-based DGP at $\sigma=0.5$ using both rook and queen estimator graphs. These two cells test whether graph regularisation is harmful when the supplied graph contains no systematic information about curve similarity. Each cell uses the same $B$ prespecified attempted replication identifiers as the core simulation; failures are not replaced.
 
-To complement the $\alpha=0$ diagnostic, a fixed false-graph ablation was
-prespecified in two selected settings: coordinate-smooth and cluster-structured
-truth, both with $\alpha=0.9$ and $\sigma=0.5$. In each replication, the
-correct rook-graph and rewired-graph network fits received exactly the same
-true curves, observation errors, observed data, basis dimensions, and fitting
-settings. Only the graph supplied to the additional network fit changes.
+**False graph control.** A fixed rewired graph is constructed from the rook graph using degree-preserving double-edge swaps. The rewired graph must:
 
-The fixed rewired graph is generated from the $5\times5$ rook graph by
-degree-preserving double-edge swaps before estimator performance is inspected.
-It must remain connected and retain the original degree sequence. Its seed,
-adjacency-list hash, edge-overlap proportion, and swap audit are stored with
-the simulation output.
+- retain the original node labels;
+- retain the rook degree sequence and number of edges;
+- remain simple and connected;
+- replace at least 75% of the original rook edges.
 
-The control uses the same attempted replication identifiers and RNG streams as
-the corresponding correct-rook core cells. It is interpreted as a targeted
-graph-ablation design, not as an average effect over all possible misspecified
-graphs.
+The rewiring seed and final adjacency list are fixed and saved before the main simulation. The same true curves, observation errors, and method settings are used for the correct-rook and rewired-graph fits.
+
+The false-graph control is evaluated at $\alpha=0.9$ and $\sigma=0.5$ for both the coordinate-smooth and cluster-structured DGPs. Each uses the same $B$ attempted replication identifiers as its corresponding core cell. The correct-rook fits are already part of the core factorial design, so only the additional rewired network fits are required; failures are not replaced.
+
+To quantify whether the rewired graph is actively incompatible with the truth, define the purely structured deviation curve for DGP $d$ as
+
+$$
+\delta^{(S)}_{i,d}(t) =
+\sum_{k=1}^{3}s_{k,d}\theta^{(S)}_{ik,d}\phi_k(t).
+$$
+
+For graph $G$, its integrated unnormalised Laplacian energy is
+
+$$
+E_{d,G} =
+\frac{
+\sum_{(i,j)\in\mathcal{E}_G}
+\int_0^1
+\left[
+\delta^{(S)}_{i,d}(t)-\delta^{(S)}_{j,d}(t)
+\right]^2dt
+}{
+\sum_{i=1}^{N}
+\int_0^1
+\left[\delta^{(S)}_{i,d}(t)\right]^2dt
+}.
+$$
+
+The false-graph incompatibility ratio is
+
+$$
+Q_d =
+\frac{E_{d,\mathrm{rewired}}}{E_{d,\mathrm{rook}}}.
+$$
+
+In addition to the structural requirements above, the retained rewired graph must satisfy
+
+$$
+Q_d\geq1.5
+$$
+
+separately for both the coordinate-smooth and cluster-structured DGPs. Rewiring candidates are generated using a prespecified seed sequence, and the first graph satisfying all structural and energy criteria is retained. The criterion is evaluated using only the fixed structured truth, before unstructured components and observation errors are generated and without inspecting any estimator-performance results. The final seed, adjacency list, edge-overlap proportion, $E_{d,G}$ values, and $Q_d$ values are saved before the main simulation.
+
+The $\alpha=0$ control therefore represents useless graph information, whereas the rewired control represents actively misleading graph information.
 
 ### 3.9 Fixed larger-graph scalability cells
 
-Node count is a distinct design dimension from the amount of information in a
-curve. The extension therefore uses a regular $10\times10$ lattice with
+Node count is examined using a $10\times10$ lattice with
 
 $$
 N=100.
 $$
 
-It contains exactly the following two fixed rook-graph cells:
+Two larger-graph cells are prespecified:
 
-| Purpose | Truth structure | $\alpha$ | $\sigma$ |
-|---|---|---:|---:|
-| High-structure scalability cell | Coordinate-smooth | 0.9 | 0.5 |
-| Negative control | Coordinate-based unstructured truth | 0 | 0.5 |
+| Purpose | Truth structure | $\alpha$ | Graph | $\sigma$ |
+|---|---|---:|---|---:|
+| High-structure scalability cell | Coordinate-smooth | 0.9 | Rook | 0.5 |
+| Negative control | Coordinate-based unstructured truth | 0 | Rook | 0.5 |
 
-Both cells use one noisy curve per node and the same common $T=50$ grid,
-temporal basis functions, mean curve, Gaussian iid observation model, and
-basis dimensions as the core experiment. Under the iid common-grid
-assumption, $n_i$ replicate curves at a node are equivalent to one curve with
-noise standard deviation $\sigma/\sqrt{n_i}$. Consequently, replicate count is
-not varied as an additional factor: the existing $\sigma\in\{0.2,0.5\}$ core
-levels already span a factor of $6.25$ in information per node. This
-equivalence does not generally hold for correlated errors or irregular grids.
-
-The coordinate fields are evaluated on row and column coordinates
-range-normalised to $[-1,1]$. To avoid confounding node count with coefficient
-magnitude, the $N=100$ cells use the fixed $N=25$ reference scales
+The coordinate fields are evaluated on row and column coordinates range-normalised to $[-1,1]$, and the temporal basis and 50-point observation grid are identical to those used for $N=25$. To avoid confounding node count with coefficient magnitude or signal-to-noise ratio, the coefficient-scale factors are not recalculated on the $10\times10$ lattice. Both $N=100$ cells use the fixed $N=25$ coordinate-field reference scales
 
 $$
 \left(s_1^{(25)},s_2^{(25)},s_3^{(25)}\right)=
 \left(\frac{0.8}{\sqrt{2}},\frac{0.8}{\sqrt{2}},0.3\right).
 $$
 
-The structured and unstructured components are nevertheless centred,
-orthogonalised, and standardised on the 100-node lattice before mixing. The
-network marginal uses $k=N=100$; all other fitting settings remain fixed. Only
-network-REML and nodewise smoothing are fitted in this block; raw and pooled
-benchmarks are not fitted or reported.
+The structured and unstructured components are nevertheless centred, orthogonalised, and standardised on the $N=100$ node set before they are mixed using the prespecified value of $\alpha$. Thus, only the lattice size and node count change, while the marginal coefficient scale remains anchored to the $N=25$ reference design. The graph marginal of the network estimator uses $k=N=100$; all other basis and fitting specifications remain as defined in Section 5.
 
-Before any $N=100$ reconstruction result is inspected, five independent timing
-replications are run for each cell. Let $\widetilde t_{100,1}$ and
-$\widetilde t_{100,2}$ be the resulting median complete-replication times. The
-attempted count per cell is fixed by
+The high-structure cell is a matched scalability analogue of the corresponding $N=25$ core cell, not a literal best-case configuration. The two $N=100$ cells are used primarily as computational scalability stress tests and secondarily for descriptive reconstruction comparisons with their matched $N=25$ settings. Because datasets are not paired across graph sizes and the replication counts may differ, no paired contrast or causal-style node-count effect is estimated.
+
+Before the main larger-graph runs, five timing replications are performed separately for each cell using prespecified timing seeds that are independent of the pilot and main-simulation seeds. These timing datasets are not included in the final performance summaries, and none is selectively removed because of an unusually short or long runtime.
+
+Let $\widetilde{t}_{100,1}$ and $\widetilde{t}_{100,2}$ denote the median elapsed times for one complete replication of the high-structure and negative-control cells, respectively. A complete replication includes data generation, M1 network and M3 nodewise fitting, prediction, metric calculation, and result saving. M0 raw and M4 pooled are neither fitted nor reported in the $N=100$ block. The projected serial runtime for attempting $b$ replications in each cell is
 
 $$
-B_{100}=\max\left\{b\in\{100,50,25\}:
-b\left(\widetilde t_{100,1}+\widetilde t_{100,2}\right)\leq8\text{ hours}\right\}.
+T_{\mathrm{proj}}(b)=
+b\left(\widetilde{t}_{100,1}+\widetilde{t}_{100,2}\right).
 $$
 
-If even $25$ attempts per cell exceed this budget, the block is recorded as
-computationally infeasible and is paused rather than reduced ad hoc. Failed
-fits are retained and never replaced. Results will report method-specific and
-joint success counts, MISE and MCSE, paired network-versus-nodewise AISE
-improvement and MCSE, runtime, warnings, and failures. The $N=25$ values are
-only descriptive references: no paired or causal-style effect of node count is
-estimated.
+The planned replication count is
 
+$$
+B_{100}=\max\left\lbrace
+b\in\{100,50,25\}:T_{\mathrm{proj}}(b)\leq8\text{ hours}
+\right\rbrace.
+$$
+
+Here $B_{100}$ denotes attempted replications in each cell. The rule is evaluated and fixed before any AISE or other reconstruction-performance result from the $N=100$ cells is inspected. If even $T_{\mathrm{proj}}(25)>8$ hours, the larger-graph block is declared computationally infeasible under the prespecified budget and is paused rather than run with an ad hoc smaller replication count.
+
+Failed fits are saved and never replaced by new seeds. Network-versus-nodewise summaries use the realised jointly successful count for their paired means and MCSEs. For each cell, MISE and its marginal MCSE, paired AISE improvement and its paired MCSE, success and failure rates, elapsed time, log smoothing parameters, and EDF are reported. If either fitted method has a failure rate above 5%, reconstruction summaries are explicitly labelled as conditional on fitting success and the failure pattern is reported separately.
+
+The two $N=100$ cells are prioritised ahead of the oracle diagnostics because node count is a distinct sample-size dimension.
 
 ### 3.10 Basis dimensions and projection check
 
@@ -663,7 +650,7 @@ $$
 }.
 $$
 
-Here, $\Pi_{K_{\mathrm{dev}}}\delta_i$ denotes the best unpenalised approximation of $\delta_i$ in the deviation basis used by the fitted model. The target is a relative projection error below 2%, preferably close to or below 1%. The core simulation proceeds only if $\mathrm{RPE}_{\mathrm{dev}}<0.02$. Any necessary increase in the basis dimension will be made and documented before the main simulation results are inspected.
+Here, $\Pi_{K_{\mathrm{dev}}}\delta_i$ denotes the best unpenalised approximation of $\delta_i$ in the deviation basis used by the fitted model. The core simulation proceeds only if $\mathrm{RPE}_{\mathrm{dev}}\leq0.02$. Any necessary increase in the basis dimension will be made and documented before the main simulation results are inspected.
 
 ---
 
@@ -690,21 +677,12 @@ Secondary estimands include:
 - reconstruction accuracy at individual nodes;
 - average reconstruction accuracy across all nodes;
 - the effect of neighbourhood density, evaluated through the direct paired rook-versus-queen difference in AISE within otherwise identical design cells;
+- the cost of an actively misleading graph, evaluated through the direct paired rewired-versus-correct-rook difference in AISE within otherwise identical false-graph control cells;
 - reconstruction accuracy at cluster boundaries;
-- reconstruction accuracy at matched interior cluster nodes; and
-- numerical stability and computation time for the $N=25$ methods;
-- descriptive reconstruction accuracy and computation cost in the two fixed
-  $N=100$ cells; and
-- the restricted oracle gap between network-REML and the selected
-  fixed-parameter oracle candidate in the four oracle cells.
-
-For the two false-graph control cells, a supplementary estimand is
-the paired difference in node-averaged integrated squared error (AISE) between
-the network estimator supplied with the fixed rewired graph and the same
-estimator supplied with the correct rook graph.
-
-The $N=100$ and restricted-oracle estimands are reported separately from the
-primary core estimands.
+- reconstruction accuracy at interior cluster nodes;
+- the true cluster structure in the block-structured DGP;
+- the reconstruction error attained by the prespecified restricted coarse-to-fine oracle, conditional on the fixed basis representation and REML-selected functional-intercept smoothing parameter;
+- computation time, numerical stability, and descriptive reconstruction accuracy in the two fixed $N=100$ scalability cells.
 
 ### 4.3 Distinction from spatial prediction
 
@@ -780,13 +758,11 @@ Internally, this is expanded into a structure of the form
 s(yindex.vec) + ti(node, yindex.vec, ...)
 ```
 
-The fitted values are returned for all observed nodes on the same 50-point grid used to generate and evaluate the data. The core experiment varies only the rook and queen neighbourhood lists supplied to the MRF marginal.
+The fitted values are returned for all observed nodes on the same 50-point grid used to generate and evaluate the data. Rook, queen, and rewired versions differ only in the neighbourhood list supplied to the MRF marginal.
 
 ### M2: Restricted network-weighted oracle smoothing
 
-The oracle is a diagnostic reference, not a real-data method. It uses the true
-curves and is therefore unavailable in applications. Its results are reported
-separately from the core benchmark.
+The oracle is a diagnostic reference and is not part of the full core benchmark. It uses the true curves and is therefore unavailable in real applications.
 
 The fitted network model contains three smoothing parameters:
 
@@ -1087,36 +1063,56 @@ The contrast is interpreted as follows:
 
 The density contrast is reported separately for each design cell and is not averaged across heterogeneous combinations of truth structure, structured-signal proportion, noise level, or graph size. Nodewise, pooled, and raw estimators do not depend on the neighbourhood graph. They are therefore fitted once per simulated dataset and their results are reused in both graph-density comparisons.
 
-### 6.5 Paired rewired-versus-rook contrast
+### 6.5 Direct paired contrast for graph misspecification
 
-For each of the two false-graph control cells, define
+To quantify the cost of supplying an actively misleading graph, the rewired-graph and correct-rook network fits are compared within the same false-graph control replication. Both fits use the same true curves, unstructured-component realisation, observation errors, observed data, basis dimensions, and fitting settings.
+
+Let $d\in\{\mathrm{coordinate},\mathrm{cluster}\}$ denote the DGP. For replication $b$, define
 
 $$
-\Delta^{(\mathrm{rewired})}_{bd} =
+\Delta^{(\mathrm{false})}_{bd} =
 \mathrm{AISE}_{bd,\mathrm{rewired}} -
-\mathrm{AISE}_{bd,\mathrm{rook}},
+\mathrm{AISE}_{bd,\mathrm{rook}}.
 $$
 
-where $d$ indexes the selected truth structure. Positive values indicate that
-the fixed rewired graph yields higher reconstruction error than the correct
-rook graph. The mean paired difference and its paired MCSE are computed over
-the jointly successful pairs. The failure-consistent relative measure is
+Let
 
 $$
-\mathrm{rMISE}^{(\mathrm{rewired/rook})}_{d} =
-\frac{\sum_b \mathrm{AISE}_{bd,\mathrm{rewired}}}
-{\sum_b \mathrm{AISE}_{bd,\mathrm{rook}}},
+\mathcal{S}^{(\mathrm{false})}_d=
+\left\lbrace b:S_{bd,\mathrm{rewired}}S_{bd,\mathrm{rook}}=1\right\rbrace,
+\qquad
+n^{(\mathrm{false,pair})}_d=|\mathcal{S}^{(\mathrm{false})}_d|.
 $$
 
-using the same paired-success set in both sums. Values above one favour the
-correct rook graph. The replication-level win rate is the proportion of pairs
-with $\Delta^{(\mathrm{rewired})}_{bd}>0$.
+The DGP-specific mean cost of graph misspecification is estimated by
 
-This targeted control assesses whether the supplied graph edges contribute
-beyond generic joint shrinkage in the two selected settings. It does not
-support a universal claim about all graph perturbations because only one fixed
-rewired graph and two selected cells are evaluated.
+$$
+\widehat{\Delta}^{(\mathrm{false})}_{d} =
+\frac{1}{n^{(\mathrm{false,pair})}_d}
+\sum_{b\in\mathcal{S}^{(\mathrm{false})}_d}
+\Delta^{(\mathrm{false})}_{bd}.
+$$
 
+Its paired Monte Carlo standard error is
+
+$$
+\mathrm{MCSE}\left(\widehat{\Delta}^{(\mathrm{false})}_{d}\right) =
+\frac{
+\mathrm{SD}\left\lbrace
+\Delta^{(\mathrm{false})}_{bd}:b\in\mathcal{S}^{(\mathrm{false})}_d
+\right\rbrace
+}{
+\sqrt{n^{(\mathrm{false,pair})}_d}
+}.
+$$
+
+The contrast is interpreted as follows:
+
+- $\widehat{\Delta}^{(\mathrm{false})}_{d}>0$ indicates that the rewired graph produces greater node-averaged reconstruction error than the correct rook graph;
+- $\widehat{\Delta}^{(\mathrm{false})}_{d}<0$ indicates that the rewired graph produces lower error in that DGP;
+- values close to zero indicate little evidence of an accuracy cost attributable to graph misspecification.
+
+The contrast is reported separately for the coordinate-smooth and cluster-structured DGPs and is not averaged across them.
 
 ### 6.6 Matched boundary difference-in-differences
 
@@ -1183,6 +1179,66 @@ $$
 
 The primary boundary analysis concerns the network-weighted estimator. Boundary and interior ISE values may additionally be reported separately as descriptive summaries.
 
+### 6.7 Oracle gap
+
+Let $c$ index one of the four prespecified oracle cells. For each attempted oracle replication $b$, define the paired oracle gap when both fits are successful:
+
+$$
+G_{bc} =
+\mathrm{AISE}_{b,\mathrm{network,REML}} -
+\mathrm{AISE}_{b,\mathrm{network,oracle}}.
+$$
+
+Because the oracle search includes the REML interaction-parameter pair, $G_{bc}$ should be non-negative apart from numerical fitting differences.
+
+Write $S_{bc,\mathrm{REML}}$ and $S_{bc,\mathrm{oracle}}$ for the corresponding fit-success indicators and define
+
+$$
+n_c^{(\mathrm{oracle,pair})} =
+\sum_{b=1}^{B_{\mathrm{oracle}}}
+S_{bc,\mathrm{REML}}S_{bc,\mathrm{oracle}},
+$$
+
+with jointly successful set
+
+$$
+\mathcal{S}_c^{(\mathrm{oracle})} =
+\left\lbrace
+b:S_{bc,\mathrm{REML}}S_{bc,\mathrm{oracle}}=1
+\right\rbrace.
+$$
+
+The estimated mean oracle gap and its paired Monte Carlo standard error are
+
+$$
+\widehat{G}_c =
+\frac{1}{n_c^{(\mathrm{oracle,pair})}}
+\sum_{b\in\mathcal{S}_c^{(\mathrm{oracle})}}G_{bc},
+$$
+
+This paired MCSE is the primary Monte Carlo uncertainty measure for the network-versus-nodewise comparison.
+
+At the aggregate level, the MISE ratio is
+
+$$
+\mathrm{MCSE}(\widehat{G}_c) =
+\frac{
+\mathrm{SD}\left\lbrace G_{bc}:b\in\mathcal{S}_c^{(\mathrm{oracle})}\right\rbrace
+}{
+\sqrt{n_c^{(\mathrm{oracle,pair})}}
+}.
+$$
+
+For each interaction direction, the difference between oracle-selected and REML log smoothing parameters is additionally summarised:
+
+$$
+\log\widehat{\lambda}_{d,\mathrm{oracle}} -
+\log\widehat{\lambda}_{d,\mathrm{REML}},
+\qquad
+d\in\{\mathrm{graph},\mathrm{time}\}.
+$$
+
+Oracle-search success counts, candidate-failure frequencies, coarse- and final-boundary-selection frequencies, and any `range-inadequate` flags are reported separately for each oracle cell. Smoothing-parameter ratios are not used as a primary performance measure.
 
 ### 6.8 Monte Carlo uncertainty
 
@@ -1280,6 +1336,129 @@ Marginal method-specific performance estimates analogously use that method's num
 
 The prespecified fit-failure threshold is 5% per method and design cell. If any fitted core method exceeds this threshold in any core cell during the pilot, the main simulation is paused while the implementation and numerical diagnostics are investigated. In the main simulation, failed fits are never replaced. If a final failure rate exceeds 5%, the affected paired performance result is explicitly labelled as conditional on joint fitting success and interpreted together with the failure analysis.
 
+---
+
+## 7. Secondary Downstream Task: Clustering
+
+For the cluster-structured DGP, a low-cost secondary descriptive analysis examines whether the reconstructed curves preserve the two prespecified clusters and how clustering agreement differs across smoothing methods. The analysis is restricted to the eight cluster-structured core cells defined by
+
+$$
+\alpha\in\{0.5,0.9\},\qquad
+G\in\{\mathrm{rook},\mathrm{queen}\},\qquad
+\sigma\in\{0.2,0.5\}.
+$$
+
+It uses only the already stored true curves and reconstructions and is conducted after completion of the primary reconstruction benchmark. It does not establish that lower AISE causally produces higher ARI.
+
+For method $m$ and replication $b$, the estimated common mean is
+
+$$
+\widehat{\mu}_{bm}(t_j) =
+\frac{1}{N}\sum_{i=1}^{N}\widehat{f}_{ibm}(t_j),
+$$
+
+and the estimated node-specific deviations are
+
+$$
+\widehat{\delta}_{ibm}(t_j) =
+\widehat{f}_{ibm}(t_j) -
+\widehat{\mu}_{bm}(t_j).
+$$
+
+Each estimated deviation is represented on the common evaluation grid using trapezoidal integration weights $w_j$. The clustering feature vector is
+
+$$
+\boldsymbol{z}_{ibm} =
+\left(
+\sqrt{w_1}\widehat{\delta}_{ibm}(t_1),
+\ldots,
+\sqrt{w_T}\widehat{\delta}_{ibm}(t_T)
+\right)^{\top}.
+$$
+
+Euclidean distances between these vectors approximate the $L^2$ distances between the estimated deviation curves.
+
+To quantify how clearly the prespecified labels are recoverable from the DGP itself, the same construction is also applied to the true curves. Define
+
+$$
+\mu_b(t_j)=\frac{1}{N}\sum_{i=1}^{N}f_{ib}(t_j),
+$$
+
+$$
+\delta_{ib}(t_j)=f_{ib}(t_j)-\mu_b(t_j),
+$$
+
+and
+
+$$
+\boldsymbol{z}^{(\mathrm{truth})}_{ib}=
+\left(
+\sqrt{w_1}\delta_{ib}(t_1),
+\ldots,
+\sqrt{w_T}\delta_{ib}(t_T)
+\right)^{\top}.
+$$
+
+Applying the prespecified clustering procedure to these vectors gives the replication-specific truth reference
+
+$$
+\mathrm{ARI}^{(\mathrm{truth})}_b.
+$$
+
+This is not an estimation method or an attainable performance target. It records whether the two fixed DGP labels are distinguishable by the chosen $k$-means procedure in that replication, particularly when the unstructured component is present at $\alpha=0.5$.
+
+The same clustering procedure is used for every included reconstructed or true curve set:
+
+1. apply $k$-means clustering to $\boldsymbol{z}_{ibm}$;
+2. fix the number of clusters at the true value of two;
+3. use 50 random initialisations with a deterministic replication-specific seed that is shared across methods and the truth reference;
+4. retain the solution with the smallest within-cluster sum of squares;
+5. compare the estimated labels with the fixed true cluster labels.
+
+The smoothing methods included are M0 raw observations, M1 network-REML, and M3 nodewise smoothing. M2 oracle and spatial-prediction methods are excluded. Because the M4 pooled deviations are identically zero, pooled smoothing is recorded once as a deterministic degenerate benchmark with ARI 0 rather than repeatedly treated as a substantive clustering method.
+
+If a method or the truth reference produces fewer than two distinct feature vectors, the result is classified as a degenerate clustering and assigned an ARI of 0.
+
+Clustering agreement is assessed using the Adjusted Rand Index of Hubert and Arabie (1985). The ARI equals 1 for identical partitions, has expected value approximately 0 under random agreement under its reference model, and may be negative when agreement is worse than expected by chance. No fixed lower bound of $-1$ is asserted.
+
+For each included method, ARI summaries use all replications in which that method's required reconstruction is successful. A fit failure is retained and is not replaced by a new seed. Raw and nodewise clustering are computed once per simulated dataset and reused across the paired rook and queen cells; network clustering is computed separately for the two graph fits. The truth-reference clustering is likewise computed once for each distinct stored truth and is not counted repeatedly as independent evidence when that truth is reused across cells.
+
+For the descriptive network-REML-versus-nodewise ARI contrast in cluster cell $c$, let $\mathcal S^{(\mathrm{ARI})}_c$ contain the replication identifiers on which both reconstructions succeed and define
+
+$$
+n^{(\mathrm{ARI,pair})}_c=
+\left|\mathcal S^{(\mathrm{ARI})}_c\right|.
+$$
+
+The paired mean difference and its MCSE are
+
+$$
+\widehat{\Delta}^{(\mathrm{ARI})}_c=
+\frac{1}{n^{(\mathrm{ARI,pair})}_c}
+\sum_{b\in\mathcal S^{(\mathrm{ARI})}_c}
+\left(
+\mathrm{ARI}_{bc,\mathrm{network}}-
+\mathrm{ARI}_{bc,\mathrm{nodewise}}
+\right),
+$$
+
+$$
+\mathrm{MCSE}\left(\widehat{\Delta}^{(\mathrm{ARI})}_c\right)=
+\frac{
+\mathrm{SD}\left\lbrace
+\mathrm{ARI}_{bc,\mathrm{network}}-
+\mathrm{ARI}_{bc,\mathrm{nodewise}}:
+b\in\mathcal S^{(\mathrm{ARI})}_c
+\right\rbrace
+}{
+\sqrt{n^{(\mathrm{ARI,pair})}_c}
+}.
+$$
+
+Other pairwise ARI differences follow the same joint-success rule. The attempted count, successful count, jointly successful count, and method-specific failure rate are reported with the clustering results.
+
+For each of the eight cells, the reported summaries are the median ARI, interquartile range, frequency of degenerate clustering, and distribution of $\mathrm{ARI}^{(\mathrm{truth})}_b$. Pairwise ARI differences may be reported descriptively with their paired MCSE, but clustering performance does not determine the main simulation replication count and is limited to one supplementary table or figure.
+
 
 ---
 
@@ -1306,10 +1485,7 @@ The pilot is used to verify:
 - correct implementation of all performance measures;
 - the variability of the paired network-versus-nodewise AISE differences.
 
-Let $c$ index a core simulation cell. The replication-count rule is based only
-on the primary network-REML-versus-nodewise comparison in the 16 core cells;
-the separate $\alpha=0$ diagnostic does not determine the core replication
-count. Let
+Let $c$ index a core simulation cell. The replication-count rule is based only on the primary network-REML-versus-nodewise comparison in the 16 core cells; negative controls, oracle fits, larger-graph cells, and clustering do not determine the core replication count. Let
 
 $$
 n^{\mathrm{pilot,pair}}_c =
@@ -1365,6 +1541,8 @@ $$
 
 Thus, the main simulation attempts at least 200 replications per cell and rounds the required number upward to a multiple of 50. Using a common $B$ preserves a balanced set of attempted datasets across cells. The realised jointly successful counts used in paired analyses may be smaller and are reported separately.
 
+If the calculated $B$ is not computationally feasible, it is not silently truncated. The unmet MCSE target is documented, and the restricted oracle scope is reduced according to Section 11 before any change to the core replication count is considered.
+
 Pilot replications are not included in the final performance estimates. If the DGP or fitting procedure is changed after the pilot, the relevant pilot checks and the replication calculation are repeated before the main simulation is started.
 
 ### 8.2 Runner implementation contract
@@ -1382,12 +1560,11 @@ with decimal points encoded as `p`, for example `core__n25__coordinate__a0p9__ro
 | Known-answer sanity | 1 | 50 | M1, M3 | Same dataset for both methods |
 | Core factorial | 16 | Common $B$ | M0, M1, M3, M4 | Eight independent datasets per ID; rook/queen share truth and observations; M0/M3/M4 computed once per dataset |
 | Uninformative-graph control | 2 | Same $B$ IDs | M0, M1, M3, M4 | Rook/queen share one dataset per ID; graph-independent methods computed once |
-| Rewired-graph control | 2 | 200 per selected cell | Additional network fits with fixed rewired graph | Same data and stream positions as corresponding correct-rook core fits; paired against frozen rook results |
+| False-graph control | 2 additional graph fits | Same $B$ IDs as matched core cells | M1 with rewired graph | Truth, observations, and correct-rook M1 result reused from the matched core cell |
 | Oracle pilot | 4 | First 50 pilot IDs | M1 plus complete M2 search | Same dataset and REML start within each cell; no final-performance contribution |
-| Oracle main | 4 | First 100 main IDs | Reused M1 plus complete M2 search | REML and all oracle candidates use the identical dataset within each replication |
-| Larger graph timing | 2 | 5 timing IDs per cell | M1, M3 | Independent timing data; timing results fix $B_{100}$ before performance results are inspected |
-| Larger graph main | 2 | Fixed $B_{100}\in\{100,50,25\}$ per cell | M1, M3 | Same data for network and nodewise within each cell; no M0 or M4 |
-| Clustering | Not executed | Not applicable | Not applicable | Archived plan only |
+| Oracle main | 4 | First 100 main IDs | Reused M1 plus complete M2 search | Same core or negative-control dataset and M1 result |
+| Larger graph | 2 | Common fixed $B_{100}$ | M1, M3 | Same dataset for both methods; no M0 or M4 |
+| Clustering | 8 linked core outputs | No additional datasets | Derived from M0, M1, M3, and truth | Four independent cluster datasets per ID; graph-independent inputs and truth reference computed once |
 
 Every attempted fit record stores at least: `phase`, `scenario_id`, `replication_id`, `dataset_id`, `method_id`, `fit_id`, graph identifier and adjacency hash, master-stream identifier, component-substream identifiers, start and end timestamps, elapsed time, success indicator, convergence status, warning count and messages, error class and message, prediction-finiteness flag, AISE and node-level summaries when available, log smoothing parameters, EDF and attainable ranks, diagnostic flags, software versions, and a hash of the frozen specification and scenario table. Candidate-level M2 records additionally store offsets, fixed smoothing parameters, AISE, success diagnostics, and the deterministic selection result.
 
@@ -1395,18 +1572,7 @@ The checkpoint key is `(phase, replication_id)`. A checkpoint is published atomi
 
 ### 8.3 Random numbers, processing order, and reproducibility
 
-The simulation uses `RNGkind("L'Ecuyer-CMRG")`. A seed ledger is generated
-serially from a fixed base seed. The pilot, known-answer check, and core
-experiment use disjoint stream ranges: positions 1--50 for the pilot,
-51--100 for the known-answer check, and 101--300 for the core run. The
-separate $\alpha=0$ diagnostic deliberately reuses the core stream positions
-while applying its own fixed data-generating mechanism and is analysed
-separately.
-
-The rewired-graph control also reuses the core stream positions
-101--300 for its corresponding correct-rook cells. This is intentional: it
-holds the generated truth and observations fixed while changing only the graph
-supplied to the additional network fit.
+The simulation uses `RNGkind("L'Ecuyer-CMRG")`. Before any parallel or performance run, a seed ledger is generated serially from a fixed base seed. Independent streams are assigned in the fixed phase order `sanity`, `pilot`, `oracle_pilot`, `timing_n100`, `main`, and `n100`; within each phase, streams are assigned by increasing replication identifier using `parallel::nextRNGStream()`. The base seed and complete ledger are saved with the frozen scenario table.
 
 Within each replication stream, `parallel::nextRNGSubStream()` assigns component substreams in the fixed order `coordinate_unstructured`, `cluster_unstructured`, `observation_error`, `clustering`, and `method_auxiliary`. Components that require several draws use a documented fixed internal order by graph size, DGP, temporal component, and noise-free dataset identifier. No seed is derived from task order, worker number, elapsed time, or character hashing. Consequently, results do not depend on the order in which cells or methods are executed.
 
@@ -1419,19 +1585,15 @@ Common random numbers are used for paired comparisons. Within replication $b$:
 - the network and nodewise methods are therefore compared on identical data;
 - raw, nodewise, and pooled estimators, which do not depend on the estimator graph, are computed once per simulated dataset and their results are reused in the paired rook-versus-queen analysis.
 
-The simulation is processed in replication-major order within every
-simulation phase. For each main-phase replication, all required core cells are
-attempted before the replication-level checkpoint is published.
-
-For each replication:
+The simulation is processed in replication-major order:
 
 1. generate all random components required for replication $b$;
-2. run every prespecified cell required in the current phase for replication $b$;
-3. fit all required methods and calculate all performance measures for those cells;
+2. run every prespecified core cell for replication $b$;
+3. fit all methods and calculate all performance measures for those cells;
 4. save a replication-level result object containing either a success record or a failure record for every attempted fit, and mark replication $b$ as complete;
 5. proceed to replication $b+1$.
 
-A replication is included in the aggregated results only after all fits required by the frozen scenario table for the current phase have been attempted and a success or failure record has been saved for each one. If execution stops before this complete result object is saved, the interrupted replication is recomputed from its original master seed when the run resumes. By contrast, a recorded model-fitting failure is a completed attempted fit and does not cause the dataset to be regenerated, the seed to be changed, or the fit to be repeatedly retried.
+A replication is included in the aggregated results only after all required core fits have been attempted and a success or failure record has been saved for each one. If execution stops before this complete result object is saved, the interrupted replication is recomputed from its original master seed when the run resumes. By contrast, a recorded model-fitting failure is a completed attempted fit and does not cause the dataset to be regenerated, the seed to be changed, or the fit to be repeatedly retried.
 
 Results are checkpointed by replication rather than only by scenario. A completion manifest records the identifiers of replication objects that have been completely saved, irrespective of whether individual fits succeeded. This ensures that an interrupted run leaves the same number of attempted replications in every core cell and remains directly evaluable.
 
@@ -1451,133 +1613,129 @@ The reporting contract is fixed as follows:
 | Individual-node reconstruction | Monte Carlo mean and median of $\mathrm{MedISE}$ and $\mathrm{WorstISE}$ | Secondary core table |
 | Network benefit over nodewise | Paired mean AISE improvement and paired MCSE | Primary comparison table and figure |
 | Neighbourhood-density effect | Paired rook-minus-queen AISE difference and MCSE | Density table and figure |
-| False-graph cost | Paired rewired-minus-rook AISE difference, paired MCSE, rMISE, and win rate | Supplementary two-cell control table |
+| False-graph cost | Paired rewired-minus-rook AISE difference and MCSE | Negative-control table and figure |
 | Relative reconstruction | Joint-success rMISE; median and IQR of RI | Secondary core table and heatmap |
 | Cluster-boundary loss | Matched boundary DiD and paired MCSE | Cluster table and figure |
-| Restricted tuning potential | Restricted oracle gap and paired MCSE | Separate oracle table, after the prespecified run is complete |
-| Scalability | Runtime, fit diagnostics, MISE, and paired improvement | Separate $N=100$ table, after the prespecified run is complete |
-| Cluster preservation | Not executed | No reported output |
+| Restricted tuning potential | Restricted oracle gap and paired MCSE | Oracle table |
+| Scalability | Runtime, fit diagnostics, MISE, and paired improvement | Separate $N=100$ table |
+| Cluster preservation | Truth-reference and method-specific ARI summaries | One supplementary table or figure |
 
-A separate deterministic design audit is conducted before estimator-performance
-summaries are inspected. It records `SNR_overall`, `SNR_dev`, and `RPE_dev`
-for each distinct generated truth configuration.
+A separate DGP-validation table is produced before estimator-performance summaries are inspected. For every distinct generated truth configuration it records `SNR_overall`, `SNR_dev`, and `RPE_dev`; for every fitted graph it records `R_MRF[k,G]` and `R_norm[k,G]` for $k=1,2,3$. For the retained rewired graph it additionally records the adjacency-list hash, edge-overlap proportion, `E_d,G`, and `Q_d` for both DGPs. Values that are identical because a truth or dataset is reused are stored once and linked by scenario identifier rather than duplicated as independent observations.
 
 ### 9.2 Main performance tables
 
-For every core combination of truth structure, structured-signal proportion,
-neighbourhood density, and noise level, the following will be reported:
+For every core combination of truth structure, structured-signal proportion, neighbourhood density, and noise level, the following are reported:
 
 - estimated MISE and its marginal MCSE for every available method, with raw and pooled results labelled as diagnostic benchmarks;
 - mean paired AISE improvement $\widehat{\Delta}_{c,m}$ and its paired MCSE, with network-REML versus nodewise identified as the primary method comparison;
 - direct paired rook-versus-queen AISE difference $\widehat{\Delta}^{(\mathrm{density})}_{c}$ and its paired MCSE for each otherwise identical design cell;
+- direct paired rewired-versus-correct-rook AISE difference $\widehat{\Delta}^{(\mathrm{false})}_{d}$ and its paired MCSE for each false-graph control DGP;
 - aggregate rMISE relative to nodewise smoothing;
 - Monte Carlo mean and median of the replication-specific median-node and worst-node ISE;
 - median and interquartile range of replication-specific RI;
 - mean, median, and selected quantiles of computation time;
 - numbers of successful, failed, warning-producing, and non-converged fits;
 - numbers of attempted and jointly successful replications for every paired comparison, with conditional-on-joint-success labels where the 5% failure threshold is exceeded;
-- retained fit diagnostics, warnings, and failures.
+- log smoothing parameters, EDF, EDF-to-rank ratios, and diagnostic-flag rates.
 
-For cluster-structured cells, matched boundary DiD and its paired MCSE are
-additionally reported. The rewired-graph control is reported in a separate
-two-row paired-comparison table. The oracle and $N=100$ results are each
-reported in a separate table and are not pooled with the core summaries.
+For cluster-structured cells, matched boundary DiD and its paired MCSE are additionally reported. Restricted oracle results and the two $N=100$ cells are presented in separate tables.
+
+The $N=100$ table treats the high-structure and negative-control cells as computational scalability stress tests. It reports the prespecified attempted count, realised method-specific and jointly successful counts, MISE and MCSE, paired network-versus-nodewise improvement and MCSE, failure rates, runtime, log smoothing parameters, and EDF separately for each cell. The matched $N=25$ results are shown alongside them only as descriptive reconstruction references; no paired cross-size contrast or formal node-count effect is reported.
 
 The known-answer sanity check is reported separately with its attempted, method-specific successful, and jointly successful counts; mean paired improvement; paired MCSE; proportion of jointly successful replications with positive improvement; and pass/fail status. It is not pooled with the core simulation results.
 
-### 9.3 Planned figures
+### 9.3 Main figures
 
-The primary presentation includes a faceted figure of the relative MISE reduction of
-network-weighted smoothing relative to nodewise smoothing across the 16 core
-cells, and a figure of the matched boundary difference-in-differences for the
-cluster-structured cells. The known-answer check, the separate $\alpha=0$
-diagnostic, and the rewired-graph control are reported in tables. Any $N=100$
-or oracle figure is labelled separately; no clustering figure is planned.
+The planned figures include:
+
+1. an interaction plot of paired AISE improvement by structured-signal proportion and noise level;
+2. a plot of the paired rook-versus-queen AISE difference and its MCSE by design cell;
+3. a plot of the paired rewired-versus-correct-rook AISE difference and its MCSE for each false-graph control DGP;
+4. a heatmap of aggregate rMISE for network-weighted versus nodewise smoothing;
+5. boxplots of replication-specific paired AISE differences;
+6. matched boundary difference-in-differences for the cluster DGP;
+7. selected example curves showing truth, observations, and estimates;
+8. term-level log smoothing parameters and EDF diagnostics;
+9. secondary clustering agreement for the eight cluster-structured core cells, including the truth-reference ARI, method-specific median and interquartile range, degenerate frequency, and jointly successful counts.
+
+Figures distinguish the 16 core cells from negative controls, larger-graph cells, oracle diagnostics, and the secondary clustering analysis.
 
 ---
 
-## 10. Pre-Main Checks
+## 10. Pilot-Dependent Checks Before the Main Simulation
 
-Before any estimator-performance result is inspected, the following checks are
-completed and documented:
+The core design choices are prespecified above. The following checks are completed using pilot or timing runs before the main performance results are inspected:
 
-1. the known-answer sanity check satisfies all prespecified criteria;
-2. the relative unpenalised $L^2$ projection error of the deviations is below
-   $2\%$;
-3. the two core noise levels produce meaningfully different overall and
-   deviation SNR values;
-4. the fixed rewired graph satisfies its connectivity and degree-preservation
-   requirements;
-5. the core replication count is fixed by the paired-MCSE rule;
-6. the fit-failure rate of every fitted core method is at most $5\%$ in every
-   core cell;
-7. the oracle candidate with offsets $(0,0)$ reproduces the REML predictions to
-   within $10^{-8}$;
-8. the 50-ID oracle pilot fixes the directional coarse grid before the oracle
-   main run; and
-9. five timing replications per $N=100$ cell fix $B_{100}$ under the eight-hour
-   budget rule.
+1. run the prespecified known-answer sanity check in Section 3.8 and verify that all three pass criteria are satisfied;
+2. verify that the relative unpenalised projection error is at most 2%;
+3. verify that $\sigma=0.2$ and $\sigma=0.5$ produce meaningfully distinct overall and deviation SNR values;
+4. verify that the fixed rewired graph satisfies all structural requirements and $Q_d\geq1.5$ separately for both DGPs;
+5. determine the common core replication count using the paired-MCSE rule in Section 8.1;
+6. verify that the fit-failure rate of every fitted core method is at most 5% in every core cell; if not, pause and investigate before launching the main simulation;
+7. verify that the fixed-parameter candidate with offsets $(0,0)$ reproduces the original REML prediction to numerical tolerance,
 
-The frozen scenario table, seed ledger, expected record counts, atomic
-checkpoint publication, resume behaviour, and deterministic duplicate
-detection are validated before the corresponding main run.
+   $$
+   \mathrm{max}_{i,j}\,\lvert
+   \widehat f_i^{(0,0)}(t_j)-\widehat f_i^{(\mathrm{REML})}(t_j)
+   \rvert < 10^{-8};
+   $$
+
+   if this check fails, stop and inspect smoothing-parameter extraction, ordering, and fixed-parameter refitting before conducting the oracle analysis;
+8. on the first 50 prespecified pilot IDs in each oracle cell, apply the prespecified directional oracle coarse-grid boundary rule, document the attempted and successful search counts and every expansion, and fix the final grid before the main oracle analysis; if a boundary frequency remains above 5% at the maximum range $[-8,8]$, retain and report the `range-inadequate` designation;
+9. using five independent timing replications per $N=100$ cell, record the two median complete-replication times and fix the largest feasible $B_{100}\in\{100,50,25\}$ under the prespecified eight-hour projected serial-runtime budget; if $B_{100}=25$ is not feasible, pause the larger-graph block and record computational infeasibility;
+10. verify on a toy cluster-structured dataset that the clustering pipeline uses identical trapezoidal weights and replication-specific seeds for raw, network-REML, nodewise, and truth-reference curves, and that degenerate inputs are assigned ARI 0;
+11. validate the frozen scenario table, seed ledger, expected record counts, atomic checkpoint publication, resume behaviour, and deterministic duplicate detection on an interrupted miniature run.
+
+Every resulting choice, diagnostic value, seed, and final scenario table is saved before the main simulation is launched. The main simulation does not begin unless the known-answer check passes. If a pilot check changes the DGP or fitting procedure, the affected pilot checks, including the known-answer check when relevant, are repeated.
 
 ---
 
 ## 11. Prioritisation Under Computational Constraints
 
-Analyses are prioritised as follows:
+If computational time is limited, analyses are prioritised as follows:
 
-1. known-answer sanity check and core benchmark;
-2. $\alpha=0$ diagnostic, pooled benchmark, cluster-boundary diagnostic, and
-   rewired-graph control;
-3. two fixed $N=100$ cells; and
-4. restricted oracle diagnostic.
+1. **Known-answer sanity check:** coordinate-smooth truth with $\alpha=1$;
+2. **Core benchmark:** network-REML versus nodewise smoothing;
+3. **Negative controls:** $\alpha=0$ and the fixed rewired graph;
+4. **Pooled baseline;**
+5. **Matched cluster-boundary analysis and secondary clustering task;**
+6. **Two fixed $N=100$ cells;**
+7. **Restricted oracle diagnostics.**
 
-The $N=100$ block precedes the oracle because node count is a distinct design
-dimension. If further reduction is necessary, the restricted oracle is reduced
-first; the $N=100$ block is not replaced by an ad hoc smaller replication count
-when its timing rule declares it infeasible. Clustering remains optional future
-work.
+If further reductions are necessary, the restricted oracle scope is reduced first. The known-answer sanity check, core benchmark, negative controls, and low-cost clustering analysis are retained. The fixed $N=100$ block is also retained subject to the prespecified timing-feasibility rule in Section 3.9; it is not replaced by a post hoc smaller design if even 25 replications per cell exceed the budget.
 
 ---
 
-## 12. Summary of the Simulation Design
+## 12. Summary of the Core Simulation
 
 | ADEMP component | Specification |
 |---|---|
-| Aim | Assess the reconstruction benefit of graph-informed smoothing for node-specific curves at observed nodes |
+| Aim | Assess the benefit and potential harm of graph information for reconstructing node-specific curves, with a separate scalability stress test |
 | Data | $N=25$, $5\times5$ lattice, $T=50$, one noisy curve per node, Gaussian independent errors |
 | Truth | Fixed $\mu(t)$ and three fixed temporal basis functions; coordinate-smooth or cluster-structured coefficient fields generated independently of the estimator graph |
 | Structured signal | $\alpha=0.5,0.9$ with fixed marginal coefficient variance |
 | Graph density | Rook and queen adjacency applied to the same truth and observations |
-| Noise level | $\sigma=0.2,0.5$; overall and deviation SNR are checked in the pilot |
+| Noise level | $\sigma=0.2,0.5$, verified using overall and deviation SNR |
 | Primary comparison methods | Network-REML and nodewise smoothing |
 | Diagnostic benchmarks | Raw observations and pooled mean smoothing |
 | Fixed fitting settings | Cubic P-splines with first-order difference penalties; $K_{\mathrm{int}}=10$, $K_{\mathrm{dev}}=15$; Gaussian identity-link models; REML; common 50-point prediction grid |
 | Primary estimand | True node-specific functions $f_i(t)$ |
 | Primary measures | MISE and paired AISE improvement over nodewise smoothing with paired MCSE |
-| Secondary measures | Median-node and worst-node ISE, descriptive rook-versus-queen comparison, joint-success rMISE, replication-wise win rate, matched boundary DiD, runtime, warnings, and failures |
-| Core design | 16 factorial cells with a common pilot-determined $B\geq200$; failed fits are recorded and never replaced |
+| Secondary measures | Median-node and worst-node ISE, direct paired rook-versus-queen and rewired-versus-correct-rook AISE contrasts, joint-success rMISE, descriptive RI, matched boundary DiD, runtime, smoothing diagnostics, warnings and failures |
+| Core design | 16 factorial cells with a pilot-determined common $B\geq200$ attempted replications; failed fits are recorded and never replaced |
 | Failure policy | Success requires no error, no reported non-convergence, and finite predictions; pilot failure threshold 5% per fitted core method and cell; paired MCSE uses the jointly successful count |
 | Known-answer check | Coordinate-smooth truth, $\alpha=1$, rook graph, $\sigma=0.5$, $N=25$, $T=50$, and $B_{\mathrm{sanity}}=50$, with three prespecified pass criteria |
-| Negative control | $\alpha=0$ uninformative-graph diagnostic at $\sigma=0.5$ for rook and queen graphs |
-| False-graph ablation | One fixed connected degree-preserving rewired rook graph; coordinate-smooth and cluster-structured truth at $\alpha=0.9$, $\sigma=0.5$; paired against the correct rook graph |
-| Larger graph | Two fixed $N=100$ rook-lattice cells; timing-based $B_{100}\in\{100,50,25\}$; reported separately |
-| Oracle | Restricted coarse-to-fine diagnostic in four selected $N=25$ cells; reported separately |
-| Clustering | Optional secondary analysis |
+| Negative controls | $\alpha=0$ uninformative graph and fixed degree-preserving rewired graph with $Q_d\geq1.5$ for both DGPs |
+| Larger graph | Two fixed $N=100$ scalability cells: high-structure and negative control; coefficient scales fixed to the $N=25$ reference; $B_{100}\in\{100,50,25\}$ chosen from complete-replication timing under an eight-hour budget; descriptive cross-size comparison only |
+| Oracle | Restricted prespecified coarse-to-fine search in four cells; initial 25-point coarse grid, deterministic directional expansion rule and local $3\times3$ refinement; first $B_{\mathrm{oracle}}=100$ attempted main-simulation replication IDs; paired summaries use jointly successful fits |
+| Clustering | Secondary descriptive analysis in the eight cluster-structured core cells; raw, network-REML, and nodewise reconstructions plus a truth-curve reference; two-cluster $k$-means, ARI, degenerate frequency, and joint-success failure handling |
 | Reproducibility | Frozen scenario table; `L'Ecuyer-CMRG` stream/substream ledger; replication-major atomic checkpoints; explicit failure records; hash-based deterministic deduplication |
 
 ## 13. Future Work
 
 A future extension may study prediction of complete functions at unobserved graph nodes and compare an adapted network method with functional kriging, for example through `SpatFD`. Because this is a spatial-prediction problem rather than reconstruction at observed nodes, it requires a separate node-holdout ADEMP specification with its own data-generating assumptions, comparators, tuning rules, performance measures, replication count, and failure policy. It is not part of the present simulation study.
 
-Temporally correlated or heteroscedastic errors, a $\sigma=0.1$
-high-information setting, additional graph perturbations beyond the fixed
-rewiring, and the clustering task remain future work. The optional
-$\sigma=0.1$ setting is not part of the current design because the existing
-$\sigma=0.2$ and $\sigma=0.5$ levels already span a factor of $6.25$ in
-information per node under the iid common-grid error model.
+Temporally correlated or heteroscedastic errors, a $\sigma=0.1$ high-information setting, and additional graph perturbations are also reserved for future work. None is run under the present specification. Any such extension requires a separate prespecification, including its exact DGP, cells, methods, replication count, estimands, performance measures, and failure policy, before the corresponding results are generated or inspected.
 
 ## References
 
