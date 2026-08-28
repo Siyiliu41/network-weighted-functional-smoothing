@@ -603,7 +603,7 @@ fig_curves <- ggplot2::ggplot(
   ggplot2::scale_linetype_manual(
     values = c(
       "Observed weekly incidence" = "solid",
-      "Nodewise smoothing" = "dashed",
+      "Nodewise smoothing" = "22",
       "Network-weighted smoothing" = "solid"
     ),
     breaks = c(
