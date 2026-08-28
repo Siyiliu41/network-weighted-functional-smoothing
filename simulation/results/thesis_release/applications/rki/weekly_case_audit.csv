@@ -1,0 +1,9 @@
+metric,value
+n_nodes,400
+n_weeks,157
+expected_county_weeks,62800
+observed_county_weeks,62800
+duplicate_county_weeks,0
+missing_weekly_counts,0
+negative_weekly_counts,0
+zero_county_weeks,1826

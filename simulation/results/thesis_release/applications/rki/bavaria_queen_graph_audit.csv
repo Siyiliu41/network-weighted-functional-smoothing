@@ -1,0 +1,9 @@
+metric,value
+n_nodes,96
+n_edges,209
+min_degree,1
+median_degree,4
+mean_degree,4.35416666666667
+max_degree,11
+n_isolated_nodes,0
+n_connected_components,1

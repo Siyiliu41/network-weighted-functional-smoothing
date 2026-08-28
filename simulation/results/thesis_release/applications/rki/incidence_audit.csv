@@ -1,0 +1,9 @@
+metric,value
+n_nodes,400
+n_weeks,157
+n_county_weeks,62800
+missing_incidence,0
+negative_incidence,0
+zero_incidence_weeks,1826
+maximum_weekly_incidence_100k,4299.14722990908
+maximum_log_incidence,8.36640454060923

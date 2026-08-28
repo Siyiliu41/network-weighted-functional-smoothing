@@ -1,0 +1,10 @@
+metric,value
+n_nodes,400
+n_edges,1044
+min_degree,1
+median_degree,5
+mean_degree,5.22
+max_degree,12
+n_isolated_nodes,0
+n_connected_components,1
+adjacency_symmetric,1

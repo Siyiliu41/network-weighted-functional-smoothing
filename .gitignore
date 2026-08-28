@@ -69,3 +69,5 @@ application/rki_covid/figures/
 
 # Generated DWD application data
 application/dwd_temperature/data/
+
+.RDataTmp*

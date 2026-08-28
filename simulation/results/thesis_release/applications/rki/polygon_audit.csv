@@ -1,0 +1,8 @@
+metric,value
+n_matched_polygons,400
+n_unique_polygon_ids,400
+n_case_ids,400
+case_ids_without_polygons,0
+duplicate_polygon_ids,0
+missing_population,0
+nonpositive_population,0

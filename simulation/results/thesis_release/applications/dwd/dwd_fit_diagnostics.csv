@@ -1,0 +1,26 @@
+"station_id","station","target_city","rms_network_vs_nodewise"
+"04271","Rostock-Warnemuende","Rostock",0.703979813900211
+"04466","Schleswig","Schleswig",0.786038465274178
+"01975","Hamburg-Fuhlsbuettel","Hamburg",0.6832526663581
+"00691","Bremen","Bremen",0.63450979567489
+"01550","Garmisch-Partenkirchen","Garmisch",0.753447579424639
+"00433","Berlin-Tempelhof","Berlin",0.662545302396037
+"02014","Hannover","Hannover",0.58894200973371
+"03126","Magdeburg","Magdeburg",0.642370118346793
+"02928","Leipzig-Holzhausen","Leipzig",0.592148025073429
+"01443","Freiburg","Freiburg",0.399863933190817
+"06217","Saarbruecken-Burbach","Saarbruecken",0.410762600252766
+"03379","Muenchen-Stadt","Munich",0.452699202671662
+"01766","Muenster/Osnabrueck","Muenster",0.54239212951805
+"15000","Aachen-Orsbach","Aachen",0.54833173042211
+"01303","Essen-Bredeney","Essen",0.541609031539035
+"15444","Ulm-Maehringen","Ulm",0.488574942090909
+"04928","Stuttgart (Schnarrenberg)","Stuttgart",0.495358507261406
+"05906","Mannheim","Mannheim",0.389378839472602
+"05856","Fuerstenzell","Passau",0.394385734534009
+"01050","Dresden-Hosterwitz","Dresden",0.420613353643957
+"02667","Koeln/Bonn","Cologne",0.472526331767193
+"01424","Frankfurt/Main-Westend","Frankfurt",0.44201341996552
+"04104","Regensburg","Regensburg",0.427433349747759
+"03668","Nuernberg","Nuremberg",0.444820565291934
+"15207","Schauenburg-Elgershausen","Kassel",0.562717800331794

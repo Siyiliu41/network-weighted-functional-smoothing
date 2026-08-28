@@ -1,0 +1,8 @@
+Source revision before thesis_release commit:
+92c28618cb5a2e2def92703267fc6263f4a16124
+
+Origin:
+https://github.com/Siyiliu41/network-weighted-functional-smoothing.git
+
+R executable:
+Rscript (R) version 4.6.1 (2026-06-24)

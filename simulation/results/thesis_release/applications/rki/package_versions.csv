@@ -1,0 +1,10 @@
+package,version
+data.table,1.18.4
+digest,0.6.39
+ffm,0.1.2
+ggplot2,4.0.3
+mgcv,1.9.4
+sf,1.1.1
+spdep,1.4.2
+tf,0.5.0
+netfunsmooth,0.1.0

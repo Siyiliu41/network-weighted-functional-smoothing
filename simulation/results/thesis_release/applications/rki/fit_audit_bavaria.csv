@@ -1,0 +1,8 @@
+metric,value
+n_nodes,96
+n_weeks,157
+nodewise_converged,96
+network_converged,1
+network_edf,445.182702563492
+mean_abs_network_minus_nodewise,0.223993316919856
+max_abs_network_minus_nodewise,2.26771336216276

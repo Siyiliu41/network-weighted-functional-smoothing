@@ -1,0 +1,2 @@
+item,source_url,local_file,size_bytes,modified_utc,sha256,analysis_start,analysis_end,retrieved_or_checked_utc
+RKI case CSV,https://media.githubusercontent.com/media/robert-koch-institut/SARS-CoV-2-Infektionen_in_Deutschland/main/Aktuell_Deutschland_SarsCov2_Infektionen.csv,C:/Users/mli12/Documents/network-weighted-functional-smoothing/application/rki_covid/data/raw/rki_cases_download.csv,413274821,2026-08-12 16:44:48 UTC,e2559dfc93a9acef624d4ad7306117d394c754425ec7192c62ec236e72cd4049,2020-03-02,2023-03-05,2026-08-28 14:48:26 UTC
