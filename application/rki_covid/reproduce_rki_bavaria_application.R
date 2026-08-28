@@ -537,41 +537,91 @@ plot_grid$network <- as.vector(t(
 ))
 
 plot_long <- rbind(
-  data.frame(plot_grid[c("node_id", "county", "week_start")], series = "Observed weekly incidence", value = plot_grid$observed),
-  data.frame(plot_grid[c("node_id", "county", "week_start")], series = "Nodewise smoothing", value = plot_grid$nodewise),
-  data.frame(plot_grid[c("node_id", "county", "week_start")], series = "Network smoothing", value = plot_grid$network)
+  data.frame(
+    plot_grid[c("node_id", "county", "week_start")],
+    series = "Observed weekly incidence",
+    value = plot_grid$observed
+  ),
+  data.frame(
+    plot_grid[c("node_id", "county", "week_start")],
+    series = "Nodewise smoothing",
+    value = plot_grid$nodewise
+  ),
+  data.frame(
+    plot_grid[c("node_id", "county", "week_start")],
+    series = "Network-weighted smoothing",
+    value = plot_grid$network
+  )
 )
 
-fig_curves <- ggplot2::ggplot(plot_long) +
+plot_long$series <- factor(
+  plot_long$series,
+  levels = c(
+    "Observed weekly incidence",
+    "Nodewise smoothing",
+    "Network-weighted smoothing"
+  )
+)
+
+fig_curves <- ggplot2::ggplot(
+  plot_long,
+  ggplot2::aes(
+    x = week_start,
+    y = value,
+    colour = series,
+    linetype = series,
+    group = series
+  )
+) +
   ggplot2::geom_line(
     data = subset(plot_long, series == "Observed weekly incidence"),
-    ggplot2::aes(week_start, value, colour = series), linewidth = 0.35
+    linewidth = 0.30,
+    alpha = 0.60
   ) +
   ggplot2::geom_line(
-    data = subset(plot_long, series != "Observed weekly incidence"),
-    ggplot2::aes(week_start, value, colour = series), linewidth = 0.7
+    data = subset(plot_long, series == "Nodewise smoothing"),
+    linewidth = 0.85
+  ) +
+  ggplot2::geom_line(
+    data = subset(plot_long, series == "Network-weighted smoothing"),
+    linewidth = 0.85
   ) +
   ggplot2::facet_wrap(~ county, ncol = 2) +
   ggplot2::scale_colour_manual(
     values = c(
-      "Observed weekly incidence" = "grey65",
-      "Nodewise smoothing" = "#0072B2",
-      "Network smoothing" = "#D55E00"
+      "Observed weekly incidence" = "grey45",
+      "Nodewise smoothing" = "#D95F02",
+      "Network-weighted smoothing" = "#1B9E77"
     ),
     breaks = c(
       "Observed weekly incidence",
       "Nodewise smoothing",
-      "Network smoothing"
+      "Network-weighted smoothing"
+    ),
+    name = NULL
+  ) +
+  ggplot2::scale_linetype_manual(
+    values = c(
+      "Observed weekly incidence" = "solid",
+      "Nodewise smoothing" = "dashed",
+      "Network-weighted smoothing" = "solid"
+    ),
+    breaks = c(
+      "Observed weekly incidence",
+      "Nodewise smoothing",
+      "Network-weighted smoothing"
     ),
     name = NULL
   ) +
   ggplot2::labs(
     title = "Weekly COVID-19 incidence curves in selected Bavarian counties",
     x = NULL,
-    y = "log(1 + weekly reported COVID-19 cases per 100,000 residents)"
+    y = "log(1 + weekly reported cases per 100,000 residents)"
   ) +
   publication_theme +
-  ggplot2::theme(legend.position = "bottom")
+  ggplot2::theme(
+    legend.position = "bottom"
+  )
 
 if (!capabilities("cairo")) {
   warning("Cairo is unavailable; PDFs use the default graphics device and may have poorer font embedding.")
