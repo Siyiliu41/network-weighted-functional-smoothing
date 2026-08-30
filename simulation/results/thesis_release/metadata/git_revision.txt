@@ -6,3 +6,16 @@ https://github.com/Siyiliu41/network-weighted-functional-smoothing.git
 
 R executable:
 Rscript (R) version 4.6.1 (2026-06-24)
+Subsequent DWD metadata product-matching correction:
+f0f83fc62d8a38315e7936586e6541b4f8d184a6
+Commit subject: Fix DWD metadata product matching
+
+This correction restricts station metadata to res = daily, var = kl,
+per = historical, and hasfile = TRUE before matching the fixed station IDs.
+The corrected dwd_station_metadata.csv is retained in applications/dwd/.
+
+The original revision above is preserved as the pre-release source reference.
+The DWD correction revision records a later code and metadata update; it does
+not imply that all released simulation and application results were rerun at
+that revision. See the retained result objects, session_info.txt, and
+application-specific provenance files for the available execution records.
