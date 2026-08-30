@@ -140,7 +140,9 @@ application/
     reproduce_rki_bavaria_application.R
                                       RKI Bavaria COVID-19 application
     README.md                         Application-specific instructions
-
+thesis/
+    Bachelorarbeit_Siyi_Liu.pdf
+    
 Simulation_study_specification.md     ADEMP specification and execution record
 README.md                             Project overview and reproduction guide
 .gitignore                            Excludes generated results and downloaded data
@@ -182,21 +184,39 @@ run_main_core_simulation("main")
 
 source("simulation/06_summarise_main_core_results.R")
 source("simulation/07_cluster_boundary_did.R")
+
 source("simulation/08_run_alpha0_negative_control.R")
+run_alpha0_negative_control("dry_run")
+run_alpha0_negative_control("main")
+
 source("simulation/09_summarise_alpha0_negative_control.R")
+
 source("simulation/10_run_rewired_graph_control.R")
+run_rewired_graph_control("dry_run")
+run_rewired_graph_control("main")
+
 source("simulation/11_n100_timing_pilot.R")
+run_n100_timing_pilot()
+
 source("simulation/12_restricted_oracle_preflight.R")
+run_restricted_oracle_preflight()
+
 source("simulation/13_run_restricted_oracle_pilot.R")
+run_restricted_oracle_pilot()
 ```
 The dry_run performs one complete 16-cell preflight replication and verifies
 the required pilot and known-answer records. The full main run uses 200
 attempted replications per cell and may take substantial time.
 
-Generated checkpoints, fitted objects, tables, and figures are intentionally
-excluded from version control. Consequently, a fresh clone cannot run the
-summary scripts before the required preceding simulation stages have been
-completed.
+Except for the curated thesis release, generated checkpoints, fitted objects,
+tables, and figures are excluded from version control. Released results can
+be inspected directly. Rerunning the summary scripts requires the preceding
+analysis outputs in their working directories, which are not supplied as a
+complete checkpoint bundle.
+
+The N = 100 timing pilot saves its feasibility assessment and stops if
+even 25 replications per cell exceed the prespecified eight-hour budget.
+This stop is an intended feasibility decision, not necessarily a fitting error.
 
 The DWD and RKI applications can be reproduced with:
 
@@ -207,9 +227,15 @@ source("application/rki_covid/reproduce_rki_bavaria_application.R")
 
 The simulation scripts use a prespecified `L'Ecuyer-CMRG` random-number
 stream and substream ledger, explicit quality checks, and checkpoint/resume
-handling. Generated simulation results, downloaded raw data, derived data
-objects, and application figures are intentionally excluded from version
-control; they can be recreated by the committed scripts.
+handling. Selected derived outputs are retained in the thesis release;
+raw data and large intermediate objects are excluded. Exact reproduction
+of the observed-data results requires the original input snapshots and
+compatible software versions. A fresh download from the continuously
+updated RKI source may differ from the snapshot used in the thesis.
+
+The applications require additional packages listed in their respective
+README files; installing the package dependencies alone may not install
+all application dependencies.
 
 ## Thesis Release
 
@@ -238,7 +264,10 @@ ignored by Git, the curated files under `thesis_release/` are explicitly
 tracked. The release allows inspection of the retained results but is not
 a complete checkpoint bundle for rerunning every analysis.
 
-## Supervisor
+## Thesis
 
-Prof. Dr. Fabian Scheipl
-LMU Munich
+[Read the thesis (PDF)](thesis/Bachelorarbeit_Siyi_Liu.pdf)
+
+Siyi Liu, *Network-Weighted Smoothing of Functional Data*.
+Bachelor's thesis, Statistics and Data Science, LMU Munich, 2026.
+Supervisor: Prof. Dr. Fabian Scheipl.
