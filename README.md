@@ -9,7 +9,7 @@ neighbouring nodes.
 
 ## Overview
 
-For functional observations (Y_i(t)) at nodes (i=1,\ldots,N) of a known
+For functional observations $Y_i(t)$ at nodes $i=1,\ldots,N$ of a known
 undirected graph, the method combines:
 
 * smoothness over the functional domain;
@@ -49,13 +49,13 @@ spatial polygon objects through `graph_to_nb()`.
 
 The simulation study follows the ADEMP framework.
 
-The completed core experiment uses a (5 \times 5) lattice with 25 nodes and
+The completed core experiment uses a $5 \times 5$ lattice with 25 nodes and
 50 time points. It varies:
 
 * truth structure: coordinate-smooth or cluster-structured;
-* structured-signal proportion: (\alpha = 0.5) or (0.9);
+* structured-signal proportion: $\alpha = 0.5$ or $0.9$;
 * supplied graph: rook or queen neighbourhood; and
-* noise standard deviation: (\sigma = 0.2) or (0.5).
+* noise standard deviation: $\sigma = 0.2$ or $0.5$.
 
 This gives 16 core design cells, each with 200 attempted replications.
 Coordinate-smooth and cluster-structured truths are generated independently of
@@ -71,8 +71,11 @@ standard errors, win rates, and fit diagnostics.
 The completed supplementary analyses include:
 
 * a known-answer sanity check;
-* a cluster-boundary difference-in-differences diagnostic; and
-* an (\alpha=0) uninformative-graph diagnostic.
+* a cluster-boundary difference-in-differences diagnostic;
+* an $\alpha = 0$ zero-structured-signal diagnostic;
+* a fixed degree-preserving rewired-graph control;
+* an $N = 100$ computational-scaling timing gate; and
+* a restricted-oracle tuning diagnostic.
 
 
 For the full prespecified design and execution record, see
@@ -166,6 +169,10 @@ source("simulation/06_summarise_main_core_results.R")
 source("simulation/07_cluster_boundary_did.R")
 source("simulation/08_run_alpha0_negative_control.R")
 source("simulation/09_summarise_alpha0_negative_control.R")
+source("simulation/10_run_rewired_graph_control.R")
+source("simulation/11_n100_timing_pilot.R")
+source("simulation/12_restricted_oracle_preflight.R")
+source("simulation/13_run_restricted_oracle_pilot.R")
 ```
 The dry_run performs one complete 16-cell preflight replication and verifies
 the required pilot and known-answer records. The full main run uses 200
@@ -188,6 +195,33 @@ stream and substream ledger, explicit quality checks, and checkpoint/resume
 handling. Generated simulation results, downloaded raw data, derived data
 objects, and application figures are intentionally excluded from version
 control; they can be recreated by the committed scripts.
+
+## Thesis Release
+
+The committed
+[`simulation/results/thesis_release/`](simulation/results/thesis_release/)
+contains a curated collection of numerical summaries, figures, audit files,
+and computational metadata supporting the thesis. These files can be inspected
+directly without rerunning the analyses.
+
+The release contains:
+
+- `tables/`: simulation summary tables;
+- `figures/`: simulation figures;
+- `audits/`: design-validation and diagnostic records;
+- `metadata/`: compact result objects and computational provenance;
+- `applications/`: selected DWD and RKI application outputs.
+
+See the [release README](simulation/results/thesis_release/README.md)
+for the file inventory and reproduction-script references. Output filenames
+retain their script-level numbering and need not match the final thesis
+table and figure numbers.
+
+Raw source data, per-replication checkpoints, and large intermediate objects
+are not included. Although generated result directories are generally
+ignored by Git, the curated files under `thesis_release/` are explicitly
+tracked. The release allows inspection of the retained results but is not
+a complete checkpoint bundle for rerunning every analysis.
 
 ## Supervisor
 
