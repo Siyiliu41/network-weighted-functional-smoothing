@@ -23,8 +23,15 @@
 options(stringsAsFactors = FALSE)
 
 required_packages <- c(
-  "devtools", "rdwd", "sf", "tf", "igraph", "ggplot2"
+  "devtools",
+  "rdwd",
+  "sf",
+  "tf",
+  "igraph",
+  "ggplot2",
+  "bit64"
 )
+
 missing_packages <- required_packages[!vapply(
   required_packages, requireNamespace, logical(1), quietly = TRUE
 )]
@@ -197,19 +204,117 @@ name_column <- grep("Stationsname|station_name", names(metadata_index), ignore.c
 if (anyNA(c(id_column, lon_column, lat_column, name_column))) {
   stop("The DWD metadata index has unexpected column names.", call. = FALSE)
 }
-metadata_index[[id_column]] <- sprintf("%05d", as.integer(metadata_index[[id_column]]))
-station_metadata <- merge(
-  station_registry, metadata_index,
-  by.x = "station_id", by.y = id_column, all.x = TRUE, sort = FALSE
+metadata_index[[id_column]] <- sprintf(
+  "%05d",
+  as.integer(metadata_index[[id_column]])
 )
-station_metadata <- station_metadata[match(station_registry$station_id, station_metadata$station_id), , drop = FALSE]
-if (anyNA(station_metadata[[lon_column]]) || anyNA(station_metadata[[lat_column]])) {
-  stop("At least one frozen station could not be matched in the DWD metadata index.", call. = FALSE)
+
+required_metadata_columns <- c("res", "var", "per", "hasfile")
+
+if (!all(required_metadata_columns %in% names(metadata_index))) {
+  stop(
+    "The DWD metadata index does not contain the required product fields.",
+    call. = FALSE
+  )
+}
+
+# Restrict the metadata to the same DWD product used for downloading
+# the analysed daily mean temperature records.
+metadata_index <- metadata_index[
+  metadata_index$res == "daily" &
+    metadata_index$var == "kl" &
+    metadata_index$per == "historical" &
+    metadata_index$hasfile %in% TRUE,
+  ,
+  drop = FALSE
+]
+
+metadata_index <- metadata_index[
+  metadata_index[[id_column]] %in% station_registry$station_id,
+  ,
+  drop = FALSE
+]
+
+metadata_counts <- table(metadata_index[[id_column]])
+
+missing_metadata <- setdiff(
+  station_registry$station_id,
+  names(metadata_counts)
+)
+
+nonunique_metadata <- names(metadata_counts)[
+  metadata_counts != 1L
+]
+
+if (length(missing_metadata) > 0L) {
+  stop(
+    "No daily/kl/historical metadata row was found for station(s): ",
+    paste(missing_metadata, collapse = ", "),
+    call. = FALSE
+  )
+}
+
+if (length(nonunique_metadata) > 0L) {
+  stop(
+    "Expected exactly one daily/kl/historical metadata row for station(s): ",
+    paste(nonunique_metadata, collapse = ", "),
+    call. = FALSE
+  )
+}
+
+station_metadata <- merge(
+  station_registry,
+  metadata_index,
+  by.x = "station_id",
+  by.y = id_column,
+  all.x = TRUE,
+  sort = FALSE
+)
+
+station_metadata <- station_metadata[
+  match(station_registry$station_id, station_metadata$station_id),
+  ,
+  drop = FALSE
+]
+
+if (!identical(
+  station_metadata$station_id,
+  station_registry$station_id
+)) {
+  stop(
+    "The DWD metadata could not be restored to registry order.",
+    call. = FALSE
+  )
+}
+
+if (
+  anyNA(station_metadata[[lon_column]]) ||
+  anyNA(station_metadata[[lat_column]])
+) {
+  stop(
+    "At least one frozen station could not be matched in the DWD metadata index.",
+    call. = FALSE
+  )
 }
 station_metadata$Stationsname <- station_metadata[[name_column]]
 station_metadata$geoLaenge <- as.numeric(station_metadata[[lon_column]])
 station_metadata$geoBreite <- as.numeric(station_metadata[[lat_column]])
 station_metadata$node_id <- station_metadata$station_id
+
+stopifnot(
+  nrow(station_metadata) == nrow(station_registry),
+  identical(
+    station_metadata$station_id,
+    station_registry$station_id
+  ),
+  all(station_metadata$res == "daily"),
+  all(station_metadata$var == "kl"),
+  all(station_metadata$per == "historical"),
+  all(station_metadata$hasfile),
+  !anyDuplicated(station_metadata$station_id),
+  !anyNA(station_metadata$geoLaenge),
+  !anyNA(station_metadata$geoBreite)
+)
 
 write.csv(
   station_metadata,
