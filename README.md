@@ -105,16 +105,31 @@ netfunsmooth/                         Installable R package
 
 simulation/
   R/                                  Graph construction, DGP, fitting, metrics, and RNG helpers
-  02_pilot_simulation.R               Pilot simulation
-  03_design_audit.R                   Basis-projection design audit
-  04_formal_known_answer.R            Known-answer sanity check
-  05_main_core_simulation.R           Final 16-cell core simulation
-  06_summarise_main_core_results.R    Core-result summaries and Figure 1
-  07_cluster_boundary_did.R           Cluster-boundary diagnostic
-  08_run_alpha0_negative_control.R    Alpha = 0 diagnostic
+  00_known_answer.R                    Initial known-answer check
+  01_smoke_test.R                      Initial smoke test
+  02_pilot_simulation.R                Pilot simulation
+  03_design_audit.R                    Basis-projection design audit
+  04_formal_known_answer.R             Formal known-answer sanity check
+  05_main_core_simulation.R            Final 16-cell core simulation
+  06_summarise_main_core_results.R     Core-result summaries and figures
+  07_cluster_boundary_did.R            Cluster-boundary diagnostic
+  08_run_alpha0_negative_control.R     Alpha = 0 zero-structured-signal diagnostic
   09_summarise_alpha0_negative_control.R
-                                      Alpha = 0 summary
-  results/                            Generated outputs (ignored by Git)
+                                      Alpha = 0 diagnostic summaries
+  10_run_rewired_graph_control.R       Fixed rewired-graph control
+  11_n100_timing_pilot.R               N = 100 timing-feasibility assessment
+  12_restricted_oracle_preflight.R     Restricted-oracle implementation checks
+  13_run_restricted_oracle_pilot.R     Restricted-oracle diagnostic (50 replications per cell)
+  results/                            Generated outputs (generally ignored by Git)
+    thesis_release/                   Curated thesis outputs tracked in Git
+      README.md                       Release inventory and reproduction references
+      tables/                         Simulation summary tables
+      figures/                        Simulation figures
+      audits/                         Design-validation records
+      metadata/                       Compact result objects and provenance
+      applications/
+        dwd/                          Retained DWD application outputs
+        rki/                          Retained RKI application outputs
 
 application/
   dwd_temperature/
