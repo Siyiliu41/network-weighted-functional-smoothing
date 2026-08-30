@@ -11,6 +11,7 @@ observed on a common grid.
 fit <- netf_smooth(
   curves,
   graph,
+  graph_id = NULL,
   sandwich = "none",
   bs.int = NULL,
   bs.yindex = NULL
@@ -38,19 +39,36 @@ neighbour list required by the MRF smooth.
 
 - **Named adjacency matrix:** must be numeric, square, symmetric, and have
   matching unique row and column names. Column order is aligned to row names;
-  these names determine the graph-node identifiers. This is the recommended
-  input when external unit identifiers must be preserved.
+  these names determine the graph-node identifiers.
 - **`igraph` object:** vertex names are used as graph-node identifiers. If no
   vertex names are present, sequential character identifiers are assigned.
-- **`sf` polygon layer:** Queen contiguity is computed with
-  `spdep::poly2nb()`. Nodes are indexed by the row order of the `sf` object.
-  For polygon data with external identifiers, construct and pass a named
-  adjacency matrix explicitly.
+- **`sf` polygon layer:** Queen contiguity is computed by default with
+  `spdep::poly2nb()`. Supply `graph_id` to `netf_smooth()` as either the name
+  of a polygon-identifier column or a vector containing one unique,
+  non-missing, non-empty identifier per polygon in polygon row order.
+  These identifiers are preserved as graph-node names. When calling
+  `graph_to_nb()` directly, the corresponding argument is named `id`.
 
 For all graph types, `netf_smooth()` verifies that the number of curves agrees
 with the number of graph nodes. If curves are named, their names must agree
-exactly with the derived graph-node identifiers; otherwise sequential graph
-node names are assigned.
+exactly with the derived graph-node identifiers, and the curves are reordered
+to match the graph-node order. Unnamed curves are matched by position and
+assigned the corresponding graph-node names; their input order must therefore
+already match the graph-node order. Keep identifiers with leading zeroes as
+character strings.
+
+For example, if `polygons` is an `sf` layer with a unique character column
+named `node_id`, and `curves` is named with the same identifiers:
+
+```r
+fit <- netf_smooth(
+  curves = curves,
+  graph = polygons,
+  graph_id = "node_id"
+)
+
+nb <- graph_to_nb(polygons, id = "node_id", queen = TRUE)
+```
 
 ## Package contents
 
