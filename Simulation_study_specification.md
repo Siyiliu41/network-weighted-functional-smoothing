@@ -2,12 +2,15 @@
 
 ## Specification According to the ADEMP Framework
 
-**Status:** Frozen execution specification (version 2026-08-23).
+**Status:** Frozen planned specification (version 2026-08-23), with a retrospective execution note in Section 14.
 
-This document defines the prespecified simulation workflow, decision rules,
-and reporting contract. It contains no execution results, run-status summaries,
-or post hoc conclusions. Pilot-dependent quantities are fixed only by the
-rules in Sections 8 and 10.
+Sections 1-13 preserve the original planned workflow, decision rules, and
+reporting contract without retrospective rewriting. They describe intended
+analyses, not a claim that every planned analysis was completed. Section 14
+records the implemented and reported scope, departures from the original
+plan, and interpretation clarifications based on the final thesis and retained
+repository materials. This retrospective note does not establish that later
+decisions were made before results were inspected.
 
 **Framework:** ADEMP framework proposed by Morris, White, and Crowther (2019)
 
@@ -1736,6 +1739,30 @@ If further reductions are necessary, the restricted oracle scope is reduced firs
 A future extension may study prediction of complete functions at unobserved graph nodes and compare an adapted network method with functional kriging, for example through `SpatFD`. Because this is a spatial-prediction problem rather than reconstruction at observed nodes, it requires a separate node-holdout ADEMP specification with its own data-generating assumptions, comparators, tuning rules, performance measures, replication count, and failure policy. It is not part of the present simulation study.
 
 Temporally correlated or heteroscedastic errors, a $\sigma=0.1$ high-information setting, and additional graph perturbations are also reserved for future work. None is run under the present specification. Any such extension requires a separate prespecification, including its exact DGP, cells, methods, replication count, estimands, performance measures, and failure policy, before the corresponding results are generated or inspected.
+
+## 14. Execution Note
+
+Sections 1-13 preserve the original plan. This retrospective note records
+differences in the final reported scope and does not establish that subsequent
+decisions were made before results were inspected.
+
+- **Restricted oracle:** The thesis reports the four-cell, 50-replication
+  diagnostic, rather than the originally planned separate 100-replication main
+  analysis. The retained diagnostic used the fixed coarse grid and local
+  refinement without the directional grid expansion specified in Section 5.
+  Two cells exceeded the 5% coarse-boundary threshold and were reported as
+  range-inadequate, with descriptive interpretation only. Reporting these
+  50-replication results and not expanding the grid depart from the original
+  oracle plan. The available records do not establish when these changes were
+  decided relative to inspection of the results.
+- **N = 100:** The timing pilot projected approximately 25.2 hours for the
+  minimum of 25 replications per cell. The main block was therefore not run,
+  in accordance with the eight-hour feasibility rule in Section 3.9.
+- **Clustering:** The ARI-based task planned in Section 7 is not reported in
+  the final thesis or identified in the retained release. Whether it was
+  executed but not retained or not executed is not established by the
+  available materials. The reported cluster-boundary diagnostic is a separate
+  analysis and does not fulfil this task.
 
 ## References
 
