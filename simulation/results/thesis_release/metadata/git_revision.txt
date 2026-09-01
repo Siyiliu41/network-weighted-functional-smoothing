@@ -6,6 +6,7 @@ https://github.com/Siyiliu41/network-weighted-functional-smoothing.git
 
 R executable:
 Rscript (R) version 4.6.1 (2026-06-24)
+
 Subsequent DWD metadata product-matching correction:
 f0f83fc62d8a38315e7936586e6541b4f8d184a6
 Commit subject: Fix DWD metadata product matching
