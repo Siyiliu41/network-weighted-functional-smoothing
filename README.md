@@ -149,14 +149,14 @@ README.md                             Project overview and reproduction guide
 ```
 
 
-## Reproducibility
+# Reproducibility
 
-# Install development tools if needed
+### Install development tools if needed
 ```r
 install.packages("devtools")
 ```
 
-# Install every package declared in netfunsmooth/DESCRIPTION
+### Install every package declared in netfunsmooth/DESCRIPTION
 ```r
 devtools::install_deps(
   "netfunsmooth",
@@ -165,7 +165,7 @@ devtools::install_deps(
 )
 ```
 
-# Load the local development version
+### Load the local development version
 ```r
 devtools::load_all("netfunsmooth")
 ```
